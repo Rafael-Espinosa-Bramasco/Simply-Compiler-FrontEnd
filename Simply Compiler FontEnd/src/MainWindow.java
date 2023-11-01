@@ -4,6 +4,7 @@
  */
 
 import java.util.ArrayList;
+import javax.swing.table.DefaultTableModel;
 
 /**
  *
@@ -16,6 +17,8 @@ public class MainWindow extends javax.swing.JFrame {
      */
     public MainWindow() {
         initComponents();
+        
+        this.TokensTableModel = (DefaultTableModel) this.TokensTable.getModel();
     }
 
     // Variables
@@ -24,7 +27,66 @@ public class MainWindow extends javax.swing.JFrame {
     int Line;
     int TNum;
     
+    DefaultTableModel TokensTableModel;
+    
     // Functions
+    private void fillTokensTable(){
+        clearTokensTable();
+        
+        TOKEN aux;
+        for(int i = 0 ; i < TL.size() ; i++){
+            aux = TL.get(i);
+            TokensTableModel.addRow(new Object[]{aux.getTokenName(),aux.getNumLine(),aux.getNumToken(),aux.getTokenType()});
+        }
+    }
+    
+    private void clearTokensTable(){
+        while(TokensTableModel.getRowCount() > 0){
+            TokensTableModel.removeRow(0);
+        }
+    }
+    
+    private void guessTokensType(){
+        for(int i = 0 ; i < TL.size() ; i++){
+            if(isRWord(TL.get(i))){
+                if(isBlockRW(TL.get(i))){
+                    TL.get(i).setTokenType("Block Delimiter");
+                }else if(isDecisionRW(TL.get(i))){
+                    TL.get(i).setTokenType("Decision Making Reserved Word");
+                }else if(isWhileBlockRW(TL.get(i))){
+                    TL.get(i).setTokenType("While Block");
+                }else if(isWhileEndBlockRW(TL.get(i))){
+                    TL.get(i).setTokenType("While Block Ends");
+                }else if(isEnteroKW(TL.get(i))){
+                    TL.get(i).setTokenType("Integer Keyword");
+                }else if(isRealKW(TL.get(i))){
+                    TL.get(i).setTokenType("Float Keyword");
+                }
+            }else if(isType(TL.get(i))){
+                if(isEntero(TL.get(i))){
+                    TL.get(i).setTokenType("Integer Type KeyWord");
+                }else{
+                    TL.get(i).setTokenType("Float Type KeyWord");
+                }
+            }else if(isSemiColon(TL.get(i))){
+                TL.get(i).setTokenType("SemiColon");
+            }else if(isAsignSymbol(TL.get(i))){
+                TL.get(i).setTokenType("Asign Symbol");
+            }else if(isOpenPar(TL.get(i))){
+                TL.get(i).setTokenType("Open Parenthesis");
+            }else if(isClosePar(TL.get(i))){
+                TL.get(i).setTokenType("Close Parenthesis");
+            }else if(isLogicalOperator(TL.get(i))){
+                TL.get(i).setTokenType("Logical Operator");
+            }else if(isMathOperator(TL.get(i))){
+                TL.get(i).setTokenType("Math Operator");
+            }
+            else if(isID(TL.get(i))){
+                TL.get(i).setTokenType("Identifier");
+            }
+        }
+    }
+    
     private void LexicalAnalisys(String code){
         TL = new ArrayList<>();
         TOKEN aux;
@@ -98,7 +160,7 @@ public class MainWindow extends javax.swing.JFrame {
                 i++;
                 
                 if(i < code.length() && code.charAt(i) == '='){
-                    AT = AT + c;
+                    AT = AT + '=';
                     
                     aux = new TOKEN(AT,Line,TNum);
                 
@@ -148,6 +210,10 @@ public class MainWindow extends javax.swing.JFrame {
                 return;
             }
         }
+        
+        guessTokensType();
+        
+        fillTokensTable();
     }
     
     private boolean isIgnorable(char c){
@@ -205,12 +271,6 @@ public class MainWindow extends javax.swing.JFrame {
         return false;
     }
     
-    private boolean isSpace(TOKEN token){
-        String c = token.getTokenName();
-        
-        return " ".equals(c);
-    }
-    
     private boolean isSemiColon(TOKEN token){
         String c = token.getTokenName();
         
@@ -263,7 +323,8 @@ public class MainWindow extends javax.swing.JFrame {
         return true;
     }
 
-    private boolean isRWord(String word){
+    private boolean isRWord(TOKEN T){
+       String word = T.getTokenName();
        ArrayList<String> reservedWords = new ArrayList<>();
        reservedWords.add("begin");
        reservedWords.add("end");
@@ -277,6 +338,47 @@ public class MainWindow extends javax.swing.JFrame {
        return reservedWords.contains(word);
           
     }
+    
+    private boolean isEnteroKW(TOKEN T){
+        return "entero".equals(T.getTokenName());
+    }
+    
+    private boolean isRealKW(TOKEN T){
+        return "real".equals(T.getTokenName());
+    }
+    
+    private boolean isAsignSymbol(TOKEN T){
+        return ":=".equals(T.getTokenName());
+    }
+    
+    private boolean isBlockRW(TOKEN T){
+        switch(T.getTokenName()){
+            case "begin", "end" -> {return true;}
+        }
+        
+        return false;
+    }
+    
+    private boolean isWhileBlockRW(TOKEN T){
+        return "while".equals(T.getTokenName());
+    }
+    
+    private boolean isWhileEndBlockRW(TOKEN T){
+        return "endwhile".equals(T.getTokenName());
+    }
+    
+    private boolean isDecisionRW(TOKEN T){
+        switch(T.getTokenName()){
+            case "if", "else" -> {return true;}
+        }
+        
+        return false;
+    }
+    
+    private boolean isType(TOKEN T){
+        return isEntero(T) || isFloat(T);
+    }
+    
     private boolean isEntero(TOKEN token){
         String t = token.getTokenName();
         for(int i=0; i< t.length(); i++){
@@ -306,7 +408,7 @@ public class MainWindow extends javax.swing.JFrame {
         jLabel2 = new javax.swing.JLabel();
         Analize = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
+        TokensTable = new javax.swing.JTable();
         jScrollPane3 = new javax.swing.JScrollPane();
         jTextArea2 = new javax.swing.JTextArea();
         jScrollPane4 = new javax.swing.JScrollPane();
@@ -338,14 +440,15 @@ public class MainWindow extends javax.swing.JFrame {
             }
         });
 
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+        TokensTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
             },
             new String [] {
-                "Token Number", "Token ID", "Token", "Lexeme"
+                "Token ID", "Code Line", "Token Number", "Lexeme"
             }
         ));
-        jScrollPane2.setViewportView(jTable1);
+        TokensTable.setShowGrid(true);
+        jScrollPane2.setViewportView(TokensTable);
 
         jTextArea2.setColumns(20);
         jTextArea2.setRows(5);
@@ -477,6 +580,7 @@ public class MainWindow extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton Analize;
     private javax.swing.JTextArea SourceCode;
+    private javax.swing.JTable TokensTable;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -486,7 +590,6 @@ public class MainWindow extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
-    private javax.swing.JTable jTable1;
     private javax.swing.JTextArea jTextArea2;
     private javax.swing.JTextArea jTextArea3;
     // End of variables declaration//GEN-END:variables
