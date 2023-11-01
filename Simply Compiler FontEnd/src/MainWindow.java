@@ -49,6 +49,76 @@ public class MainWindow extends javax.swing.JFrame {
     private boolean isSpace(char c){
         return c == ' ';
     }
+    
+    private boolean isSemiColon(char c){
+        return c == ';';
+    }
+    
+    private boolean isOpenPar(char c){
+        return c == '(';
+    }
+    
+    private boolean isClosePar(char c){
+        return c == ')';
+    }
+    
+    private boolean isSpace(TOKEN token){
+        String c = token.getTokenName();
+        
+        return " ".equals(c);
+    }
+    
+    private boolean isSemiColon(TOKEN token){
+        String c = token.getTokenName();
+        
+        return ";".equals(c);
+    }
+    
+    private boolean isOpenPar(TOKEN token){
+        String c = token.getTokenName();
+        
+        return "(".equals(c);
+    }
+    
+    private boolean isClosePar(TOKEN token){
+        String c = token.getTokenName();
+        
+        return ")".equals(c);
+    }
+    
+    private boolean isLogicalOperator(TOKEN token){
+        String t = token.getTokenName();
+        
+        switch(t){
+            case "=","<=",">=","<",">","<>" -> {return true;}
+        }
+        return false;
+    }
+    
+    private boolean isMathOperator(TOKEN token){
+        String t = token.getTokenName();
+        
+        switch(t){
+            case "+","-","/","*" -> {return true;}
+        }
+        return false;
+    }
+    
+    private boolean isID(TOKEN token){
+        String t = token.getTokenName();
+        
+        if(!isAlpha(t.charAt(0))){
+            return false;
+        }
+        
+        for(int i = 1 ; i < t.length() ; i++){
+            if(!isNumber(t.charAt(i)) || !isAlpha(t.charAt(i))){
+                return false;
+            }
+        }
+        
+        return true;
+    }
 
     private boolean isRWord(String word){
        ArrayList<String> reservedWords = new ArrayList<>();
