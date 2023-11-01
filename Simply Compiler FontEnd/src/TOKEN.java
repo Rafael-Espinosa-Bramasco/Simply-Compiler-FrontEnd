@@ -11,7 +11,13 @@ public class TOKEN {
     private String tokenName;
     private int  numLine;
     private int  numToken;
-
+    private String tokenType;
+    TOKEN(String name, int line, int token , String type){
+        this.tokenName = name;
+        this.numLine = line;
+        this.numToken = token;
+        this.tokenType = type;
+    }
     TOKEN(String name, int line, int token){
         this.tokenName = name;
         this.numLine = line;
@@ -26,5 +32,9 @@ public class TOKEN {
     }
     int getNumToken(){
         return this.numToken;
+    }
+    
+    void setTokenType(String type){
+        this.tokenType = type;
     }
 }
