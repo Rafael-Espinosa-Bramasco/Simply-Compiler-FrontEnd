@@ -51,8 +51,107 @@ public class MainWindow extends javax.swing.JFrame {
                 TL.add(aux);
                 AT = "";
                 TNum++;
+                i--;
+                
+            }else if(isNumber(c)){
+                // is number
+                // check if is integer or float
+                AT = AT + c;
+                i++;
+                
+                while(i < code.length() && (isNumber(code.charAt(i)))){
+                    AT = AT + code.charAt(i);
+                    i++;
+                }
+                
+                if(i < code.length() && (isPoint(code.charAt(i)))){
+                    AT = AT + code.charAt(i);
+                    i++;
+                    
+                    while(i < code.length() && (isNumber(code.charAt(i)))){
+                        AT = AT + code.charAt(i);
+                        i++;
+                    }
+                }
+                
+                aux = new TOKEN(AT,Line,TNum);
+                
+                TL.add(aux);
+                AT = "";
+                TNum++;
+                i--;
+                
+            }else if(isNewLine(c)){
+                Line++;
+                TNum = 1;
+            }else if(isOpenPar(c) || isClosePar(c) || isSemiColon(c)){
+                AT = AT + c;
+
+                aux = new TOKEN(AT,Line,TNum);
+                
+                TL.add(aux);
+                AT = "";
+                TNum++;
+                
+            }else if(c == ':'){
+                AT = AT + c;
+                i++;
+                
+                if(i < code.length() && code.charAt(i) == '='){
+                    AT = AT + c;
+                    
+                    aux = new TOKEN(AT,Line,TNum);
+                
+                    TL.add(aux);
+                    AT = "";
+                    TNum++;
+                }
+            }else if(isMathOperator(c)){
+                AT = AT + c;
+
+                aux = new TOKEN(AT,Line,TNum);
+                
+                TL.add(aux);
+                AT = "";
+                TNum++;
+            }else if(isSimplyLogicalOperator(c)){
+                AT = AT + c;
+                
+                switch(c){
+                    case '<' -> {
+                        i++;
+                        
+                        if(i < code.length() && (code.charAt(i) == '=' || code.charAt(i) == '>')){
+                            AT = AT + c;
+                        }else{
+                            i--;
+                        }
+                    }
+                    case '>' -> {
+                        i++;
+                        if(i < code.length() && code.charAt(i) == '='){
+                            AT = AT + c;
+                        }else{
+                            i--;
+                        }
+                    }
+                }
+                
+                aux = new TOKEN(AT,Line,TNum);
+                
+                TL.add(aux);
+                AT = "";
+                TNum++;
+            
+            }else if(!isIgnorable(c)){
+                // ERROR
+                return;
             }
         }
+    }
+    
+    private boolean isIgnorable(char c){
+        return isSpace(c) || "\t".equals(String.valueOf(c));
     }
     
     private boolean isNumber(char c){
@@ -72,6 +171,14 @@ public class MainWindow extends javax.swing.JFrame {
         return c == ' ';
     }
     
+    private boolean isNewLine(char c){
+        return "\n".equals(String.valueOf(c));
+    }
+    
+    private boolean isPoint(char c){
+        return c == '.';
+    }
+    
     private boolean isSemiColon(char c){
         return c == ';';
     }
@@ -82,6 +189,20 @@ public class MainWindow extends javax.swing.JFrame {
     
     private boolean isClosePar(char c){
         return c == ')';
+    }
+    
+    private boolean isSimplyLogicalOperator(char c){
+        switch(c){
+            case '=','<','>' -> {return true;}
+        }
+        return false;
+    }
+    
+    private boolean isMathOperator(char c){
+        switch(c){
+            case '+','-','/','*' -> {return true;}
+        }
+        return false;
     }
     
     private boolean isSpace(TOKEN token){
@@ -195,6 +316,7 @@ public class MainWindow extends javax.swing.JFrame {
         jLabel5 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Compiler FontEnd");
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
@@ -311,6 +433,10 @@ public class MainWindow extends javax.swing.JFrame {
     private void AnalizeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_AnalizeActionPerformed
         // TODO add your handling code here:
         this.LexicalAnalisys(this.SourceCode.getText());
+        
+        for(int i = 0 ; i < TL.size() ; i++){
+            System.out.println(TL.get(i).getTokenName());
+        }
     }//GEN-LAST:event_AnalizeActionPerformed
 
     /**
