@@ -130,6 +130,26 @@ public class MainWindow extends javax.swing.JFrame {
        reservedWords.add("else");
        reservedWords.add("while");
        reservedWords.add("endwhile");
+       
+       return reservedWords.contains(word);
+          
+    }
+    private boolean isEntero(TOKEN token){
+        String t = token.getTokenName();
+        for(int i=0; i< t.length(); i++){
+            if(!isNumber(t.charAt(i))){
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    private boolean isFloat(TOKEN token){
+        String t = token.getTokenName();
+        if(t.indexOf('.')== -1 || t.indexOf('.') == t.length()-1 || t.indexOf('.') != t.lastIndexOf('.') ){
+            return false;
+        }
+        return true;
     }
     /**
      * This method is called from within the constructor to initialize the form.
