@@ -19,17 +19,39 @@ public class MainWindow extends javax.swing.JFrame {
     }
 
     // Variables
-    ArrayList<TOKEN> TOKENS_LIST;
-    String actualToken;
+    ArrayList<TOKEN> TL;
+    String AT;
+    int Line;
+    int TNum;
     
     // Functions
     private void LexicalAnalisys(String code){
-        ArrayList<TOKEN> TOKENS_LIST = new ArrayList<>();
-        actualToken = "";
+        TL = new ArrayList<>();
+        TOKEN aux;
+        AT = "";
+        Line = 1;
+        TNum = 1;
         char c;
         
         for(int i = 0 ; i < code.length() ; i++){
             c = code.charAt(i);
+            
+            if(isAlpha(c)){
+                // Is identifier or reserved word
+                AT = AT + c;
+                i++;
+                
+                while(i < code.length() && (isAlpha(code.charAt(i)) || isNumber(code.charAt(i)))){
+                    AT = AT + code.charAt(i);
+                    i++;
+                }
+                
+                aux = new TOKEN(AT,Line,TNum);
+                
+                TL.add(aux);
+                AT = "";
+                TNum++;
+            }
         }
     }
     
@@ -43,7 +65,7 @@ public class MainWindow extends javax.swing.JFrame {
     private boolean isAlpha(char c){
         int charCode = c;
 
-        return (charCode >= 65 || charCode <= 90) || (charCode >= 97 || charCode <= 122);
+        return (charCode >= 65 && charCode <= 90) || (charCode >= 97 && charCode <= 122);
     }
 
     private boolean isSpace(char c){
@@ -146,10 +168,7 @@ public class MainWindow extends javax.swing.JFrame {
     
     private boolean isFloat(TOKEN token){
         String t = token.getTokenName();
-        if(t.indexOf('.')== -1 || t.indexOf('.') == t.length()-1 || t.indexOf('.') != t.lastIndexOf('.') ){
-            return false;
-        }
-        return true;
+        return !(t.indexOf('.')== -1 || t.indexOf('.') == t.length()-1 || t.indexOf('.') != t.lastIndexOf('.'));
     }
     /**
      * This method is called from within the constructor to initialize the form.
@@ -162,9 +181,9 @@ public class MainWindow extends javax.swing.JFrame {
 
         jLabel1 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTextArea1 = new javax.swing.JTextArea();
+        SourceCode = new javax.swing.JTextArea();
         jLabel2 = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
+        Analize = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
         jScrollPane3 = new javax.swing.JScrollPane();
@@ -181,16 +200,21 @@ public class MainWindow extends javax.swing.JFrame {
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel1.setText("Simply Compiler FrontEnd");
 
-        jTextArea1.setColumns(20);
-        jTextArea1.setRows(5);
-        jScrollPane1.setViewportView(jTextArea1);
+        SourceCode.setColumns(20);
+        SourceCode.setRows(5);
+        jScrollPane1.setViewportView(SourceCode);
 
         jLabel2.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel2.setText("Code");
 
-        jButton1.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        jButton1.setText("Analize");
+        Analize.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        Analize.setText("Analize");
+        Analize.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                AnalizeActionPerformed(evt);
+            }
+        });
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -236,7 +260,7 @@ public class MainWindow extends javax.swing.JFrame {
                                 .addGap(18, 18, 18)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(Analize, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addComponent(jLabel3))
                                     .addComponent(jLabel4, javax.swing.GroupLayout.Alignment.TRAILING)
                                     .addComponent(jLabel5, javax.swing.GroupLayout.Alignment.TRAILING))
@@ -263,7 +287,7 @@ public class MainWindow extends javax.swing.JFrame {
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(jLabel3)
                                 .addGap(70, 70, 70)
-                                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addComponent(Analize, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)))
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
                                 .addGap(18, 18, 18)
@@ -283,6 +307,11 @@ public class MainWindow extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void AnalizeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_AnalizeActionPerformed
+        // TODO add your handling code here:
+        this.LexicalAnalisys(this.SourceCode.getText());
+    }//GEN-LAST:event_AnalizeActionPerformed
 
     /**
      * @param args the command line arguments
@@ -320,7 +349,8 @@ public class MainWindow extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
+    private javax.swing.JButton Analize;
+    private javax.swing.JTextArea SourceCode;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -331,7 +361,6 @@ public class MainWindow extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JTable jTable1;
-    private javax.swing.JTextArea jTextArea1;
     private javax.swing.JTextArea jTextArea2;
     private javax.swing.JTextArea jTextArea3;
     // End of variables declaration//GEN-END:variables
