@@ -453,9 +453,7 @@ public class MainWindow extends javax.swing.JFrame {
                 return false;
             }
             
-            if(sig_ordenes(TL)){
-                return true;
-            }
+            return sig_ordenes(TL);
         }
         
         return false;
@@ -473,9 +471,7 @@ public class MainWindow extends javax.swing.JFrame {
                 return false;
             }
             
-            if(sig_ordenes(TL)){
-                return true;
-            }
+            return sig_ordenes(TL);
         }
         
         return false;
@@ -483,11 +479,11 @@ public class MainWindow extends javax.swing.JFrame {
     
     private boolean orden(ArrayList<TOKEN> TL){
         
-        if(isID(TL.get(0))){
+        if(!TL.isEmpty() && isID(TL.get(0))){
             return asignar(TL);
-        }else if(isIf(TL.get(0))){
+        }else if(!TL.isEmpty() && isIf(TL.get(0))){
             return condicion(TL);
-        }else if(isWhile(TL.get(0))){
+        }else if(!TL.isEmpty() && isWhile(TL.get(0))){
             return bucle_while(TL);
         }
         
