@@ -417,10 +417,47 @@ public class MainWindow extends javax.swing.JFrame {
         return ( d && o);
     }
     
+   
     private boolean declaraciones(ArrayList<TOKEN> TL){
+        
+        return true;
+    }
+  
+    private boolean sig_declaracion(ArrayList<TOKEN> TL){
+
         return true;
     }
     
+    private boolean delcaracion(ArrayList<TOKEN> TL){
+        boolean t,list_v;
+        if(!TL.isEmpty() && (t = tipo(TL))){
+            
+        }
+        else{
+            return false;
+        }
+        
+        if(!TL.isEmpty()){
+            return false;
+        }
+        list_v = lista_variables(TL);
+        
+        return (t && list_v);
+    }
+    private boolean tipo(ArrayList<TOKEN> TL){
+        if(isType(TL.get(0))){
+            TL.remove(0);
+            return true;
+        }
+        else
+            return false;
+    }
+    private boolean lista_variables(ArrayList<TOKEN> TL){
+        return true;
+    }
+    private boolean sig_lista_variables(ArrayList<TOKEN> TL){
+        return true;
+    }
     private boolean identificador(ArrayList<TOKEN> TL){
        if(isID(TL.get(0))){
            TL.remove(0);
