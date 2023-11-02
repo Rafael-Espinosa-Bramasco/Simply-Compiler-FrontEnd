@@ -393,6 +393,10 @@ public class MainWindow extends javax.swing.JFrame {
         String t = token.getTokenName();
         return !(t.indexOf('.')== -1 || t.indexOf('.') == t.length()-1 || t.indexOf('.') != t.lastIndexOf('.'));
     }
+    
+    private boolean ordenes(ArrayList<TOKEN> TL){
+        return false;
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
