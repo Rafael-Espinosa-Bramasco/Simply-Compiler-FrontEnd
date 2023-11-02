@@ -375,6 +375,22 @@ public class MainWindow extends javax.swing.JFrame {
         return false;
     }
     
+    private boolean isIf(TOKEN T){
+        return "if".equals(T.getTokenName());
+    }
+    
+    private boolean isElse(TOKEN T){
+        return "else".equals(T.getTokenName());
+    }
+    
+    private boolean isWhile(TOKEN T){
+        return "while".equals(T.getTokenName());
+    }
+    
+    private boolean isEnd(TOKEN T){
+        return "end".equals(T.getTokenName());
+    }
+    
     private boolean isType(TOKEN T){
         return isEntero(T) || isFloat(T);
     }
@@ -430,6 +446,173 @@ public class MainWindow extends javax.swing.JFrame {
     }
     
     private boolean ordenes(ArrayList<TOKEN> TL){
+        if(orden(TL)){
+            if(!TL.isEmpty() && isSemiColon(TL.get(0))){
+                TL.remove(0);
+            }else{
+                return false;
+            }
+            
+            if(sig_ordenes(TL)){
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    private boolean sig_ordenes(ArrayList<TOKEN> TL){
+        if(TL.isEmpty() || isElse(TL.get(0)) || isEnd(TL.get(0))){
+            return true;
+        }
+        
+        if(orden(TL)){
+            if(!TL.isEmpty() && isSemiColon(TL.get(0))){
+                TL.remove(0);
+            }else{
+                return false;
+            }
+            
+            if(sig_ordenes(TL)){
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    private boolean orden(ArrayList<TOKEN> TL){
+        
+        if(isID(TL.get(0))){
+            return asignar(TL);
+        }else if(isIf(TL.get(0))){
+            return condicion(TL);
+        }else if(isWhile(TL.get(0))){
+            return bucle_while(TL);
+        }
+        
+        return false;
+    }
+    
+    private boolean condicion(ArrayList<TOKEN> TL){
+        // check if
+        if(!TL.isEmpty() && !isIf(TL.get(0))){
+            return false;
+        }
+        
+        TL.remove(0);
+        
+        if(!TL.isEmpty() && isOpenPar(TL.get(0))){
+            ArrayList<TOKEN> compList = new ArrayList<>();
+            compList.add(TL.get(0));
+            
+            TL.remove(0);
+            
+            int opCount = 1;
+            while(!TL.isEmpty() && opCount > 0){
+                if(isOpenPar(TL.get(0))){
+                    opCount++;
+                }else if(isClosePar(TL.get(0))){
+                    opCount--;
+                }
+                compList.add(TL.get(0));
+                TL.remove(0);
+            }
+            
+            if(opCount >= 1){
+                return false;
+            }else{
+                compList.remove(0);
+                compList.remove(compList.size() - 1);
+                
+                if(comparacion(compList)){
+                    if(ordenes(TL)){
+                        return sig_condicion(TL);
+                    }else{
+                        return false;
+                    }
+                }else{
+                    return false;
+                }
+            }
+        }
+        
+        return false;
+    }
+    
+    private boolean sig_condicion(ArrayList<TOKEN> TL){
+        if(TL.isEmpty()){
+            return false;
+        }
+        
+        if(isEnd(TL.get(0))){
+            TL.remove(0);
+            return true;
+        }else if(isElse(TL.get(0))){
+            TL.remove(0);
+            if(ordenes(TL)){
+                if(isEnd(TL.get(0))){
+                    TL.remove(0);
+                    return true;
+                }
+                return false;
+            }
+            return false;
+        }
+        
+        return false;
+    }
+    
+    private boolean comparacion(ArrayList<TOKEN> TL){
+        return operador(TL) && condicion_op(TL) && operador(TL);
+    }
+    
+    private boolean condicion_op(ArrayList<TOKEN> TL){
+        if(!TL.isEmpty() && isLogicalOperator(TL.get(0))){
+            TL.remove(0);
+            return true;
+        }
+        return false;
+    }
+    
+    private boolean operador(ArrayList<TOKEN> TL){
+        if(!TL.isEmpty() && isID(TL.get(0))){
+            return identificador(TL);
+        }else if(isEntero(TL.get(0)) || isFloat(TL.get(0))){
+            return numeros(TL);
+        }
+        return false;
+    }
+    
+    private boolean exp_arit(ArrayList<TOKEN> TL){
+        return false;
+    }
+    
+    private boolean operador_arit(ArrayList<TOKEN> TL){
+        return false;
+    }
+    
+    private boolean numeros(ArrayList<TOKEN> TL){
+        return false;
+    }
+    
+    private boolean numero_entero(ArrayList<TOKEN> TL){
+        return false;
+    }
+    
+    private boolean numero_real(ArrayList<TOKEN> TL){
+        return false;
+    }
+    
+    private boolean bucle_while(ArrayList<TOKEN> TL){
+        return false;
+    }
+    
+    private boolean asignar(ArrayList<TOKEN> TL){
+        return false;
+    }
+    
+    private boolean expresion_arit(ArrayList<TOKEN> TL){
         return false;
     }
     
