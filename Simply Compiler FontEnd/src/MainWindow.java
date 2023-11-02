@@ -4,6 +4,7 @@
  */
 
 import java.util.ArrayList;
+import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -87,7 +88,7 @@ public class MainWindow extends javax.swing.JFrame {
         }
     }
     
-    private void LexicalAnalisys(String code){
+    private boolean LexicalAnalisys(String code){
         TL = new ArrayList<>();
         TOKEN aux;
         AT = "";
@@ -206,14 +207,16 @@ public class MainWindow extends javax.swing.JFrame {
                 TNum++;
             
             }else if(!isIgnorable(c)){
-                // ERROR
-                return;
+                JOptionPane.showMessageDialog(this, "Lexical Error: \n" + '\'' + c + '\'' + " is not a accepted character!.");
+                return false;
             }
         }
         
         guessTokensType();
         
         fillTokensTable();
+        
+        return true;
     }
     
     private boolean isIgnorable(char c){
@@ -743,7 +746,7 @@ public class MainWindow extends javax.swing.JFrame {
         jLabel3.setText("Lexical Analisys");
 
         jLabel4.setFont(new java.awt.Font("Segoe UI", 2, 12)); // NOI18N
-        jLabel4.setText("Sintactic Analisys");
+        jLabel4.setText("Sintax Analisys");
 
         jLabel5.setFont(new java.awt.Font("Segoe UI", 2, 12)); // NOI18N
         jLabel5.setText("Semantic Analisys");
@@ -812,11 +815,24 @@ public class MainWindow extends javax.swing.JFrame {
         );
 
         pack();
+        setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
     private void AnalizeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_AnalizeActionPerformed
         // TODO add your handling code here:
-        this.LexicalAnalisys(this.SourceCode.getText());
+        boolean lexicalAnalisys = this.LexicalAnalisys(this.SourceCode.getText());
+        
+        if(!lexicalAnalisys){
+            return;
+        }
+        
+        boolean sintaxAnalisysResult = this.programa(TL);
+        
+        if(sintaxAnalisysResult){
+            // Semantic Analisys
+        }else{
+            JOptionPane.showMessageDialog(this, "Sintax Error: \nSee Sintax Analisys field to get more info.");
+        }
     }//GEN-LAST:event_AnalizeActionPerformed
 
     /**
