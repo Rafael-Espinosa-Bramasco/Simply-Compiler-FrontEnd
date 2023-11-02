@@ -419,44 +419,69 @@ public class MainWindow extends javax.swing.JFrame {
     
    
     private boolean declaraciones(ArrayList<TOKEN> TL){
+        boolean d,sig_d;
+        if(!TL.isEmpty() || !(d=declaracion(TL))){
+            return false;
+        }
+        if(!isSemiColon(TL.get(0))){
+            return false;
+        }
+        TL.remove(0);
         
+        if(!TL.isEmpty() || !(sig_d = sig_declaracion(TL))){
+            return false;
+        }
         return true;
     }
   
     private boolean sig_declaracion(ArrayList<TOKEN> TL){
-
+        boolean d,sig_d;
+        if(TL.isEmpty() || isSemiColon(TL.get(0))){
+            return true;
+        }
+        if(!(d =declaracion(TL))){
+            return false;
+        }
+        if(!isSemiColon(TL.get(0))){
+            return false;
+        }
+        TL.remove(0);
+        if(!(sig_d = sig_declaracion(TL))){
+            return false;
+        }
         return true;
     }
     
-    private boolean delcaracion(ArrayList<TOKEN> TL){
+    private boolean declaracion(ArrayList<TOKEN> TL){
         boolean t,list_v;
-        if(!TL.isEmpty() && (t = tipo(TL))){
-            
-        }
-        else{
+        if(TL.isEmpty() || !(t = tipo(TL))){
             return false;
         }
-        
-        if(!TL.isEmpty()){
+        if(!TL.isEmpty() || !(list_v = lista_variables(TL))){
             return false;
         }
-        list_v = lista_variables(TL);
-        
-        return (t && list_v);
+        return true;
     }
     private boolean tipo(ArrayList<TOKEN> TL){
         if(isType(TL.get(0))){
             TL.remove(0);
             return true;
         }
-        else
-            return false;
+        return false;
     }
     private boolean lista_variables(ArrayList<TOKEN> TL){
+        boolean id,sig_list_v;
+        if(TL.isEmpty() || !(id = identificador(TL))){
+            return false;
+        }
+        
+        if(TL.isEmpty() || !(sig_list_v = sig_lista_variables(TL))){
+            return false;
+        }
         return true;
     }
     private boolean sig_lista_variables(ArrayList<TOKEN> TL){
-        return true;
+        return TL.isEmpty() ? true : lista_variables(TL);
     }
     private boolean identificador(ArrayList<TOKEN> TL){
        if(isID(TL.get(0))){
