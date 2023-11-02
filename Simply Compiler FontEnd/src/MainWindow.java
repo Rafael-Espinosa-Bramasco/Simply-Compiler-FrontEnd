@@ -64,9 +64,9 @@ public class MainWindow extends javax.swing.JFrame {
                 }
             }else if(isType(TL.get(i))){
                 if(isEntero(TL.get(i))){
-                    TL.get(i).setTokenType("Integer Type KeyWord");
+                    TL.get(i).setTokenType("Integer Type Constant");
                 }else{
-                    TL.get(i).setTokenType("Float Type KeyWord");
+                    TL.get(i).setTokenType("Float Type Constant");
                 }
             }else if(isSemiColon(TL.get(i))){
                 TL.get(i).setTokenType("SemiColon");
