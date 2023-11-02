@@ -536,10 +536,6 @@ public class MainWindow extends javax.swing.JFrame {
     private void AnalizeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_AnalizeActionPerformed
         // TODO add your handling code here:
         this.LexicalAnalisys(this.SourceCode.getText());
-        
-        for(int i = 0 ; i < TL.size() ; i++){
-            System.out.println(TL.get(i).getTokenName());
-        }
     }//GEN-LAST:event_AnalizeActionPerformed
 
     /**
