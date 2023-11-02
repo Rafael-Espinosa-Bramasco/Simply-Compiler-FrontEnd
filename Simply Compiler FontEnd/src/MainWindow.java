@@ -399,30 +399,31 @@ public class MainWindow extends javax.swing.JFrame {
     //===========================================//
     
     private boolean  programa(ArrayList<TOKEN> TL){
-        ArrayList<TOKEN> TLcopy;
-        TLcopy = (ArrayList<TOKEN>)TL.clone();
-        boolean d =false;
-        boolean o = false;
+        ArrayList<TOKEN> TLcopy = (ArrayList<TOKEN>)TL.clone();
+        boolean d;
+        boolean o;
         
-        if(TLcopy.get(0).getTokenName() == "begin" && TLcopy.get(TLcopy.size()-1).getTokenName() == "end"){
+        if("begin".equals(TLcopy.get(0).getTokenName()) && "end".equals(TLcopy.get(TLcopy.size()-1).getTokenName())){
             TLcopy.remove(0);
             TLcopy.remove(TLcopy.size()-1);
-            
-            return ( d && o);
         }
-        else{
+        
+        if(!(d = declaraciones(TLcopy))){
             return false;
         }
         
+        o = ordenes(TLcopy);
+        
+        return ( d && o);
     }
     
-    private boolean declaraciones(ArrayList<TOKEN> TLcopy){
+    private boolean declaraciones(ArrayList<TOKEN> TL){
         return true;
     }
     
-    private boolean identificador(ArrayList<TOKEN> TLcopy){
-       if(isID(TLcopy.get(0))){
-           TLcopy.remove(0);
+    private boolean identificador(ArrayList<TOKEN> TL){
+       if(isID(TL.get(0))){
+           TL.remove(0);
            return true;
        }
        return false;
