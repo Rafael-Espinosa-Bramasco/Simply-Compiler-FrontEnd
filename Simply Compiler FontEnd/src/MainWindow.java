@@ -663,31 +663,141 @@ public class MainWindow extends javax.swing.JFrame {
     }
     
     private boolean operador_arit(ArrayList<TOKEN> TL){
+        if(!TL.isEmpty() && isMathOperator(TL.get(0))){
+            TL.remove(0);
+            return true;
+        }
         return false;
     }
     
     private boolean numeros(ArrayList<TOKEN> TL){
+        if(!TL.isEmpty() && isEntero(TL.get(0))){
+            return numero_entero(TL);
+        }
+        if(!TL.isEmpty() && isFloat(TL.get(0))){
+            return numero_real(TL);
+        }
         return false;
     }
     
     private boolean numero_entero(ArrayList<TOKEN> TL){
+        if(!TL.isEmpty() && isEntero(TL.get(0))){
+            TL.remove(0);
+            return true;
+        }
         return false;
     }
     
     private boolean numero_real(ArrayList<TOKEN> TL){
+        if(!TL.isEmpty() && isFloat(TL.get(0))){
+            TL.remove(0);
+            return true;
+        }
         return false;
     }
     
     private boolean bucle_while(ArrayList<TOKEN> TL){
+        if(!TL.isEmpty() && isWhile(TL.get(0))){
+            TL.remove(0);
+            if(!TL.isEmpty() && isOpenPar(TL.get(0))){
+                ArrayList<TOKEN> compList = new ArrayList<>();
+                compList.add(TL.get(0));
+
+                TL.remove(0);
+
+                int opCount = 1;
+                while(!TL.isEmpty() && opCount > 0){
+                    if(isOpenPar(TL.get(0))){
+                        opCount++;
+                    }else if(isClosePar(TL.get(0))){
+                        opCount--;
+                    }
+                    compList.add(TL.get(0));
+                    TL.remove(0);
+                }
+
+                if(opCount >= 1){
+                    return false;
+                }else{
+                    compList.remove(0);
+                    compList.remove(compList.size() - 1);
+
+                    if(comparacion(compList)){
+                        if(ordenes(TL)){
+                            return sig_condicion(TL);
+                        }else{
+                            return false;
+                        }
+                    }else{
+                        return false;
+                    }
+                }
+            }
+           
+        }
         return false;
     }
     
     private boolean asignar(ArrayList<TOKEN> TL){
+        if(!TL.isEmpty() && identificador(TL)){
+            if(isAsignSymbol(TL.get(0))){
+                TL.remove(0);
+                return expresion_arit(TL);
+            }
+        }
         return false;
     }
     
     private boolean expresion_arit(ArrayList<TOKEN> TL){
+        if(!TL.isEmpty() && isOpenPar(TL.get(0))){
+                ArrayList<TOKEN> compList = new ArrayList<>();
+                compList.add(TL.get(0));
+
+                TL.remove(0);
+
+                int opCount = 1;
+                while(!TL.isEmpty() && opCount > 0){
+                    if(isOpenPar(TL.get(0))){
+                        opCount++;
+                    }else if(isClosePar(TL.get(0))){
+                        opCount--;
+                    }
+                    compList.add(TL.get(0));
+                    TL.remove(0);
+                }
+
+                if(opCount >= 1){
+                    return false;
+                }else{
+                    compList.remove(0);
+                    compList.remove(compList.size() - 1);
+
+                    if(expresion_arit(compList)){
+                        if(operador_arit(compList)){
+                            if(expresion_arit(compList)){
+                                return exp_arit(TL);
+                            }
+                        }else{
+                            return false;
+                        }
+                    }else{
+                        return false;
+                    }
+                }
+            }else if(!TL.isEmpty() && isID(TL.get(0))){
+                if(identificador(TL)){
+                    return(exp_arit(TL));
+                }    
+            }else if(!TL.isEmpty() && isNumber(TL.get(0))){
+                if(numeros(TL)){
+                    return(exp_arit(TL));
+                }   
+        }
         return false;
+    }
+    
+    private boolean isNumber(TOKEN T){
+       return isEntero(T) || isFloat(T);
     }
     
     /**
