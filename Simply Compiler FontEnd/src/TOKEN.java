@@ -42,4 +42,8 @@ public class TOKEN {
     public String getTokenType(){
         return this.tokenType;
     }
+    
+    public boolean comp(TOKEN T){
+        return this.getNumLine() == T.getNumLine() && this.getNumToken() == T.getNumToken() && this.getTokenName().equals(T.getTokenName());
+    }
 }

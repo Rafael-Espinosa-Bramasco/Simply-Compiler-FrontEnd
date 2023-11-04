@@ -20,6 +20,7 @@ public class MainWindow extends javax.swing.JFrame {
         initComponents();
         
         this.TokensTableModel = (DefaultTableModel) this.TokensTable.getModel();
+        this.lastToken = null;
     }
 
     // Variables
@@ -27,6 +28,10 @@ public class MainWindow extends javax.swing.JFrame {
     String AT;
     int Line;
     int TNum;
+    
+    boolean error;
+    
+    TOKEN lastToken;
     
     int ifCount;
     int whileCount;
@@ -74,6 +79,8 @@ public class MainWindow extends javax.swing.JFrame {
                 }
             }else if(isSemiColon(TL.get(i))){
                 TL.get(i).setTokenType("SemiColon");
+            }else if(isComa(TL.get(i))){
+                TL.get(i).setTokenType("Coma");
             }else if(isAsignSymbol(TL.get(i))){
                 TL.get(i).setTokenType("Asign Symbol");
             }else if(isOpenPar(TL.get(i))){
@@ -150,7 +157,7 @@ public class MainWindow extends javax.swing.JFrame {
             }else if(isNewLine(c)){
                 Line++;
                 TNum = 1;
-            }else if(isOpenPar(c) || isClosePar(c) || isSemiColon(c)){
+            }else if(isOpenPar(c) || isClosePar(c) || isSemiColon(c) || isComa(c)){
                 AT = AT + c;
 
                 aux = new TOKEN(AT,Line,TNum);
@@ -243,6 +250,10 @@ public class MainWindow extends javax.swing.JFrame {
         return c == ' ';
     }
     
+    private boolean isComa(char c){
+        return c == ',';
+    }
+    
     private boolean isNewLine(char c){
         return "\n".equals(String.valueOf(c));
     }
@@ -313,7 +324,15 @@ public class MainWindow extends javax.swing.JFrame {
         return false;
     }
     
+     private boolean isComa(TOKEN t){
+        return ",".equals(t.getTokenName());
+    }
+    
     private boolean isID(TOKEN token){
+        if(isRWord(token)){
+            return false;
+        }
+        
         String t = token.getTokenName();
         
         if(!isAlpha(t.charAt(0))){
@@ -401,6 +420,10 @@ public class MainWindow extends javax.swing.JFrame {
         return isEntero(T) || isFloat(T);
     }
     
+    private boolean isDT(TOKEN T){
+        return isEnteroKW(T) || isRealKW(T);
+    }
+    
     private boolean isEntero(TOKEN token){
         String t = token.getTokenName();
         for(int i=0; i< t.length(); i++){
@@ -421,6 +444,10 @@ public class MainWindow extends javax.swing.JFrame {
     //===========================================//
     
     private boolean  programa(ArrayList<TOKEN> TL){
+        if(TL.isEmpty()){
+            sintaxError("No tokens given");
+            return false;
+        }
         ArrayList<TOKEN> TLcopy = (ArrayList<TOKEN>)TL.clone();
         boolean d;
         boolean o;
@@ -429,98 +456,109 @@ public class MainWindow extends javax.swing.JFrame {
         whileCount = 0;
         
         if("begin".equals(TLcopy.get(0).getTokenName()) && "end".equals(TLcopy.get(TLcopy.size()-1).getTokenName())){
+            lastToken = TLcopy.get(0);
             TLcopy.remove(0);
             TLcopy.remove(TLcopy.size()-1);
+            
+            if(!(d = declaraciones(TLcopy))){
+                return false;
+            }
+
+            o = ordenes(TLcopy);
+
+            return ( d && o);
         }
         
-        if(!(d = declaraciones(TLcopy))){
-            return false;
-        }
-        
-        o = ordenes(TLcopy);
-        
-        return ( d && o);
+        sintaxError("begin at the start or end at the finish");
+        return false;
     }
     
    
     private boolean declaraciones(ArrayList<TOKEN> TL){
-        boolean d,sig_d;
-        if(!TL.isEmpty() || !(d=declaracion(TL))){
+        if(TL.isEmpty() || !declaracion(TL)){
             return false;
         }
         if(!isSemiColon(TL.get(0))){
+            sintaxError("SemiColon");
             return false;
         }
+        lastToken = TL.get(0);
         TL.remove(0);
         
-        if(!TL.isEmpty() || !(sig_d = sig_declaracion(TL))){
-            return false;
-        }
-        return true;
+        return sig_declaracion(TL);
     }
   
     private boolean sig_declaracion(ArrayList<TOKEN> TL){
-        boolean d,sig_d;
-        if(TL.isEmpty() || isSemiColon(TL.get(0))){
+        if(TL.isEmpty() || !isDT(TL.get(0))){
             return true;
         }
-        if(!(d =declaracion(TL))){
+        if(!declaracion(TL)){
             return false;
         }
         if(!isSemiColon(TL.get(0))){
+            sintaxError("SemiColon");
             return false;
         }
+        lastToken = TL.get(0);
         TL.remove(0);
-        if(!(sig_d = sig_declaracion(TL))){
-            return false;
-        }
-        return true;
+        return sig_declaracion(TL);
     }
     
     private boolean declaracion(ArrayList<TOKEN> TL){
-        boolean t,list_v;
-        if(TL.isEmpty() || !(t = tipo(TL))){
+        if(TL.isEmpty() || !tipo(TL)){
             return false;
         }
-        if(!TL.isEmpty() || !(list_v = lista_variables(TL))){
-            return false;
-        }
-        return true;
+        return lista_variables(TL);
     }
     private boolean tipo(ArrayList<TOKEN> TL){
-        if(isType(TL.get(0))){
+        if(isDT(TL.get(0))){
+            lastToken = TL.get(0);
             TL.remove(0);
             return true;
         }
+        sintaxError("A data type");
         return false;
     }
     private boolean lista_variables(ArrayList<TOKEN> TL){
-        boolean id,sig_list_v;
-        if(TL.isEmpty() || !(id = identificador(TL))){
+        if(TL.isEmpty() || !identificador(TL)){
             return false;
         }
         
-        if(TL.isEmpty() || !(sig_list_v = sig_lista_variables(TL))){
-            return false;
-        }
-        return true;
+        return sig_lista_variables(TL);
     }
+    
     private boolean sig_lista_variables(ArrayList<TOKEN> TL){
-        return TL.isEmpty() ? true : lista_variables(TL);
+        if(TL.isEmpty() || isSemiColon(TL.get(0))){
+            return true;
+        }
+        
+        if(!TL.isEmpty() && isComa(TL.get(0))){
+            lastToken = TL.get(0);
+            TL.remove(0);
+            return lista_variables(TL);
+        }
+        
+        sintaxError("Coma");
+        return false;
     }
+    
     private boolean identificador(ArrayList<TOKEN> TL){
        if(isID(TL.get(0))){
+           lastToken = TL.get(0);
            TL.remove(0);
            return true;
        }
+       sintaxError("Identifier");
        return false;
     }
     
     private boolean ordenes(ArrayList<TOKEN> TL){
         if(orden(TL)){
             if(!TL.isEmpty() && isSemiColon(TL.get(0))){
+                lastToken = TL.get(0);
                 TL.remove(0);
             }else{
+                sintaxError("Semicolon");
                 return false;
             }
             
@@ -541,11 +579,20 @@ public class MainWindow extends javax.swing.JFrame {
             ifCount--;
             return true;
         }
+        else if(isWhileEndBlockRW(TL.get(0)) && whileCount > 0){
+            whileCount--;
+            return true;
+        }
+        else if(!TL.isEmpty() && (isElse(TL.get(0)) && ifCount <= 0 || isEnd(TL.get(0)) && ifCount <= 0 || isWhileEndBlockRW(TL.get(0)) && whileCount > 0)){
+            return false;
+        }
         
         if(orden(TL)){
             if(!TL.isEmpty() && isSemiColon(TL.get(0))){
+                lastToken = TL.get(0);
                 TL.remove(0);
             }else{
+                sintaxError("SemiColon");
                 return false;
             }
             
@@ -565,21 +612,26 @@ public class MainWindow extends javax.swing.JFrame {
             return bucle_while(TL);
         }
         
+        sintaxError("Identifier or if or while");
         return false;
     }
     
     private boolean condicion(ArrayList<TOKEN> TL){
         // check if
         if(!TL.isEmpty() && !isIf(TL.get(0))){
+            sintaxError("if");
             return false;
         }
         
+        lastToken = TL.get(0);
         TL.remove(0);
+        ifCount++;
         
         if(!TL.isEmpty() && isOpenPar(TL.get(0))){
             ArrayList<TOKEN> compList = new ArrayList<>();
             compList.add(TL.get(0));
             
+            lastToken = TL.get(0);
             TL.remove(0);
             
             int opCount = 1;
@@ -594,8 +646,10 @@ public class MainWindow extends javax.swing.JFrame {
             }
             
             if(opCount >= 1){
+                sintaxError("Balanced parenthesis");
                 return false;
             }else{
+                lastToken = TL.get(0);
                 compList.remove(0);
                 compList.remove(compList.size() - 1);
                 
@@ -616,19 +670,24 @@ public class MainWindow extends javax.swing.JFrame {
     
     private boolean sig_condicion(ArrayList<TOKEN> TL){
         if(TL.isEmpty()){
+            sintaxError("end or else");
             return false;
         }
         
         if(isEnd(TL.get(0))){
+            lastToken = TL.get(0);
             TL.remove(0);
             return true;
         }else if(isElse(TL.get(0))){
+            lastToken = TL.get(0);
             TL.remove(0);
             if(ordenes(TL)){
                 if(isEnd(TL.get(0))){
+                    lastToken = TL.get(0);
                     TL.remove(0);
                     return true;
                 }
+                sintaxError("end");
                 return false;
             }
             return false;
@@ -643,9 +702,11 @@ public class MainWindow extends javax.swing.JFrame {
     
     private boolean condicion_op(ArrayList<TOKEN> TL){
         if(!TL.isEmpty() && isLogicalOperator(TL.get(0))){
+            lastToken = TL.get(0);
             TL.remove(0);
             return true;
         }
+        sintaxError("Logical Operator");
         return false;
     }
     
@@ -655,18 +716,7 @@ public class MainWindow extends javax.swing.JFrame {
         }else if(isEntero(TL.get(0)) || isFloat(TL.get(0))){
             return numeros(TL);
         }
-        return false;
-    }
-    
-    private boolean exp_arit(ArrayList<TOKEN> TL){
-        return false;
-    }
-    
-    private boolean operador_arit(ArrayList<TOKEN> TL){
-        if(!TL.isEmpty() && isMathOperator(TL.get(0))){
-            TL.remove(0);
-            return true;
-        }
+        sintaxError("Identifier or Number");
         return false;
     }
     
@@ -677,32 +727,40 @@ public class MainWindow extends javax.swing.JFrame {
         if(!TL.isEmpty() && isFloat(TL.get(0))){
             return numero_real(TL);
         }
+        sintaxError("entero or real");
         return false;
     }
     
     private boolean numero_entero(ArrayList<TOKEN> TL){
         if(!TL.isEmpty() && isEntero(TL.get(0))){
+            lastToken = TL.get(0);
             TL.remove(0);
             return true;
         }
+        sintaxError("entero number");
         return false;
     }
     
     private boolean numero_real(ArrayList<TOKEN> TL){
         if(!TL.isEmpty() && isFloat(TL.get(0))){
+            lastToken = TL.get(0);
             TL.remove(0);
             return true;
         }
+        sintaxError("real number");
         return false;
     }
     
     private boolean bucle_while(ArrayList<TOKEN> TL){
         if(!TL.isEmpty() && isWhile(TL.get(0))){
+            lastToken = TL.get(0);
             TL.remove(0);
+            whileCount++;
             if(!TL.isEmpty() && isOpenPar(TL.get(0))){
                 ArrayList<TOKEN> compList = new ArrayList<>();
                 compList.add(TL.get(0));
-
+                
+                lastToken = TL.get(0);
                 TL.remove(0);
 
                 int opCount = 1;
@@ -717,14 +775,21 @@ public class MainWindow extends javax.swing.JFrame {
                 }
 
                 if(opCount >= 1){
+                    sintaxError("Balanced parenthesis");
                     return false;
                 }else{
+                    lastToken = TL.get(0);
                     compList.remove(0);
                     compList.remove(compList.size() - 1);
 
                     if(comparacion(compList)){
                         if(ordenes(TL)){
-                            return sig_condicion(TL);
+                            if(!TL.isEmpty() && isWhileEndBlockRW(TL.get(0))){
+                                lastToken = TL.get(0);
+                                TL.remove(0);
+                                return true;
+                            }
+                            sintaxError("endwhile");
                         }else{
                             return false;
                         }
@@ -741,9 +806,11 @@ public class MainWindow extends javax.swing.JFrame {
     private boolean asignar(ArrayList<TOKEN> TL){
         if(!TL.isEmpty() && identificador(TL)){
             if(isAsignSymbol(TL.get(0))){
+                lastToken = TL.get(0);
                 TL.remove(0);
                 return expresion_arit(TL);
             }
+            sintaxError("Asign Symbol");
         }
         return false;
     }
@@ -752,7 +819,8 @@ public class MainWindow extends javax.swing.JFrame {
         if(!TL.isEmpty() && isOpenPar(TL.get(0))){
                 ArrayList<TOKEN> compList = new ArrayList<>();
                 compList.add(TL.get(0));
-
+                
+                lastToken = TL.get(0);
                 TL.remove(0);
 
                 int opCount = 1;
@@ -767,8 +835,10 @@ public class MainWindow extends javax.swing.JFrame {
                 }
 
                 if(opCount >= 1){
+                    sintaxError("Balanced parenthesis");
                     return false;
                 }else{
+                    lastToken = TL.get(0);
                     compList.remove(0);
                     compList.remove(compList.size() - 1);
 
@@ -793,11 +863,106 @@ public class MainWindow extends javax.swing.JFrame {
                     return(exp_arit(TL));
                 }   
         }
+        sintaxError("Open parenthesis, identifier or number");
+        return false;
+    }
+    
+    private boolean exp_arit(ArrayList<TOKEN> TL){
+        if(TL.isEmpty() || isSemiColon(TL.get(0))){
+            return true;
+        }
+        
+        if(operador_arit(TL)){
+            if(expresion_arit(TL)){
+                return exp_arit(TL);
+            }
+        }
+        
+        return false;
+    }
+    
+    private boolean operador_arit(ArrayList<TOKEN> TL){
+        if(!TL.isEmpty() && isMathOperator(TL.get(0))){
+            lastToken = TL.get(0);
+            TL.remove(0);
+            return true;
+        }
+        sintaxError("Arithmetic operator");
         return false;
     }
     
     private boolean isNumber(TOKEN T){
        return isEntero(T) || isFloat(T);
+    }
+    
+    private void clearAllFields(){
+        this.lastToken = null;
+        this.error = false;
+        this.clearTokensTable();
+        this.SintaxMessages.setText("");
+        this.SemanticMessages.setText("");
+    }
+    
+    private void sintaxError(String message){
+        if(!this.error){
+            if(lastToken == null){
+                addSintaxError("Sintax Error: \n");
+                addSintaxError("\tAl Line ");
+                addSintaxError("N/A");
+                addSintaxError(", Token Number ");
+                addSintaxError("N/A");
+                addSintaxError(":\n\t");
+                
+                addSintaxError("N/A\n\t");
+                
+                addSintaxError("^\n");
+                addSintaxError("Expected: ");
+                addSintaxError(message);
+                
+            }else{
+                addSintaxError("Sintax Error: \n");
+                addSintaxError("\tAl Line ");
+                addSintaxError(String.valueOf(lastToken.getNumLine()));
+                addSintaxError(", Token Number ");
+                addSintaxError(String.valueOf(lastToken.getNumToken() + 1));
+                addSintaxError(":\n\t");
+                
+                int len = 0;
+                boolean flag = true;
+                for(int i = 0 ; i < TL.size() ; i++){
+                    if(lastToken.comp(TL.get(i))){
+                        flag = false;
+                        len += 3;
+                    }
+                    
+                    if(lastToken.getNumLine() == TL.get(i).getNumLine()){
+                        addSintaxError(TL.get(i).getTokenName());
+                        addSintaxError(" ");
+                        
+                        if(flag){
+                            len += TL.get(i).getTokenName().length() + 1;
+                        }
+                    }
+                }
+                
+                addSintaxError("\n\t");
+                
+                for(int i = 1 ; i < len ; i++){
+                    addSintaxError("*");
+                }
+                addSintaxError("^\n");
+                addSintaxError("Expected: ");
+                addSintaxError(message);
+            }
+            
+            this.error = true;
+        }
+    }
+    
+    private void semanticError(){}
+    
+    private void addSintaxError(String s){
+        this.SintaxMessages.setText(this.SintaxMessages.getText().concat(s));
     }
     
     /**
@@ -817,9 +982,9 @@ public class MainWindow extends javax.swing.JFrame {
         jScrollPane2 = new javax.swing.JScrollPane();
         TokensTable = new javax.swing.JTable();
         jScrollPane3 = new javax.swing.JScrollPane();
-        jTextArea2 = new javax.swing.JTextArea();
+        SintaxMessages = new javax.swing.JTextArea();
         jScrollPane4 = new javax.swing.JScrollPane();
-        jTextArea3 = new javax.swing.JTextArea();
+        SemanticMessages = new javax.swing.JTextArea();
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
@@ -857,13 +1022,15 @@ public class MainWindow extends javax.swing.JFrame {
         TokensTable.setShowGrid(true);
         jScrollPane2.setViewportView(TokensTable);
 
-        jTextArea2.setColumns(20);
-        jTextArea2.setRows(5);
-        jScrollPane3.setViewportView(jTextArea2);
+        SintaxMessages.setEditable(false);
+        SintaxMessages.setColumns(20);
+        SintaxMessages.setRows(5);
+        jScrollPane3.setViewportView(SintaxMessages);
 
-        jTextArea3.setColumns(20);
-        jTextArea3.setRows(5);
-        jScrollPane4.setViewportView(jTextArea3);
+        SemanticMessages.setEditable(false);
+        SemanticMessages.setColumns(20);
+        SemanticMessages.setRows(5);
+        jScrollPane4.setViewportView(SemanticMessages);
 
         jLabel3.setFont(new java.awt.Font("Segoe UI", 2, 12)); // NOI18N
         jLabel3.setText("Lexical Analisys");
@@ -943,6 +1110,7 @@ public class MainWindow extends javax.swing.JFrame {
 
     private void AnalizeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_AnalizeActionPerformed
         // TODO add your handling code here:
+        this.clearAllFields();
         boolean lexicalAnalisys = this.LexicalAnalisys(this.SourceCode.getText());
         
         if(!lexicalAnalisys){
@@ -952,7 +1120,7 @@ public class MainWindow extends javax.swing.JFrame {
         boolean sintaxAnalisysResult = this.programa(TL);
         
         if(sintaxAnalisysResult){
-            // Semantic Analisys
+            this.SintaxMessages.setText("No sintax errors during analisys.");
         }else{
             JOptionPane.showMessageDialog(this, "Sintax Error: \nSee Sintax Analisys field to get more info.");
         }
@@ -995,6 +1163,8 @@ public class MainWindow extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton Analize;
+    private javax.swing.JTextArea SemanticMessages;
+    private javax.swing.JTextArea SintaxMessages;
     private javax.swing.JTextArea SourceCode;
     private javax.swing.JTable TokensTable;
     private javax.swing.JLabel jLabel1;
@@ -1006,7 +1176,5 @@ public class MainWindow extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
-    private javax.swing.JTextArea jTextArea2;
-    private javax.swing.JTextArea jTextArea3;
     // End of variables declaration//GEN-END:variables
 }
