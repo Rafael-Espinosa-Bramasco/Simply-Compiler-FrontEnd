@@ -28,6 +28,9 @@ public class MainWindow extends javax.swing.JFrame {
     int Line;
     int TNum;
     
+    int ifCount;
+    int whileCount;
+    
     DefaultTableModel TokensTableModel;
     
     // Functions
@@ -422,6 +425,9 @@ public class MainWindow extends javax.swing.JFrame {
         boolean d;
         boolean o;
         
+        ifCount = 0;
+        whileCount = 0;
+        
         if("begin".equals(TLcopy.get(0).getTokenName()) && "end".equals(TLcopy.get(TLcopy.size()-1).getTokenName())){
             TLcopy.remove(0);
             TLcopy.remove(TLcopy.size()-1);
@@ -525,7 +531,14 @@ public class MainWindow extends javax.swing.JFrame {
     }
     
     private boolean sig_ordenes(ArrayList<TOKEN> TL){
-        if(TL.isEmpty() || isElse(TL.get(0)) || isEnd(TL.get(0))){
+        if(TL.isEmpty()){
+            return true;
+        }
+        else if(isElse(TL.get(0)) && ifCount > 0){
+            return true;
+        }
+        else if(isEnd(TL.get(0)) && ifCount > 0){
+            ifCount--;
             return true;
         }
         
