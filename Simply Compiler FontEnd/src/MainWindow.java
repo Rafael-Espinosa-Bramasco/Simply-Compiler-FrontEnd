@@ -478,7 +478,7 @@ public class MainWindow extends javax.swing.JFrame {
 
             o = ordenes(TLcopy);
 
-            return ( d && o);
+            return ( d && o) && ifCount == 0 && whileCount == 0;
         }
         
         sintaxError("begin at the start and end at the finish");
@@ -716,6 +716,7 @@ public class MainWindow extends javax.swing.JFrame {
             return false;
         }
         
+        sintaxError("end or else");
         return false;
     }
     
