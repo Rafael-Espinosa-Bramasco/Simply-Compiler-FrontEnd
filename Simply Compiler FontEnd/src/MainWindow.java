@@ -33,6 +33,10 @@ public class MainWindow extends javax.swing.JFrame {
     
     TOKEN lastToken;
     
+    int lastDT;
+    STO aux1, aux2;
+    ArrayList<STO> Symbols;
+    
     int ifCount;
     int whileCount;
     
@@ -448,6 +452,7 @@ public class MainWindow extends javax.swing.JFrame {
             sintaxError("No tokens given");
             return false;
         }
+        Symbols = new ArrayList<>();
         ArrayList<TOKEN> TLcopy = (ArrayList<TOKEN>)TL.clone();
         boolean d;
         boolean o;
@@ -469,7 +474,7 @@ public class MainWindow extends javax.swing.JFrame {
             return ( d && o);
         }
         
-        sintaxError("begin at the start or end at the finish");
+        sintaxError("begin at the start and end at the finish");
         return false;
     }
     
@@ -512,6 +517,10 @@ public class MainWindow extends javax.swing.JFrame {
     }
     private boolean tipo(ArrayList<TOKEN> TL){
         if(isDT(TL.get(0))){
+            aux1 = new STO();
+            lastDT = (TL.get(0).getTokenName().equals("entero") ? 0 : 1);
+            aux1.setDT(lastDT);
+            
             lastToken = TL.get(0);
             TL.remove(0);
             return true;
@@ -523,7 +532,10 @@ public class MainWindow extends javax.swing.JFrame {
         if(TL.isEmpty() || !identificador(TL)){
             return false;
         }
-        
+        aux1.setID(lastToken.getTokenName());
+        aux1.setValue("N/A");
+
+        Symbols.add(aux1);
         return sig_lista_variables(TL);
     }
     
@@ -534,6 +546,9 @@ public class MainWindow extends javax.swing.JFrame {
         
         if(!TL.isEmpty() && isComa(TL.get(0))){
             lastToken = TL.get(0);
+            aux1 = new STO();
+            aux1.setDT(lastDT);
+            
             TL.remove(0);
             return lista_variables(TL);
         }
@@ -545,6 +560,7 @@ public class MainWindow extends javax.swing.JFrame {
     private boolean identificador(ArrayList<TOKEN> TL){
        if(isID(TL.get(0))){
            lastToken = TL.get(0);
+           
            TL.remove(0);
            return true;
        }
