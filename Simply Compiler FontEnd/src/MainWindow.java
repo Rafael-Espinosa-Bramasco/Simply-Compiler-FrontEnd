@@ -3,8 +3,15 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -1004,6 +1011,7 @@ public class MainWindow extends javax.swing.JFrame {
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
+        AddFile = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Compiler FontEnd");
@@ -1057,6 +1065,14 @@ public class MainWindow extends javax.swing.JFrame {
         jLabel5.setFont(new java.awt.Font("Segoe UI", 2, 12)); // NOI18N
         jLabel5.setText("Semantic Analisys");
 
+        AddFile.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        AddFile.setText("Add File");
+        AddFile.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                AddFileActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -1069,7 +1085,11 @@ public class MainWindow extends javax.swing.JFrame {
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(10, 10, 10)
+                                .addComponent(AddFile)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 278, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(18, 18, 18)
@@ -1090,7 +1110,9 @@ public class MainWindow extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jLabel1)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel1)
+                    .addComponent(AddFile, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addComponent(jLabel2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -1106,7 +1128,7 @@ public class MainWindow extends javax.swing.JFrame {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
                                 .addGap(18, 18, 18)
-                                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 100, Short.MAX_VALUE)
+                                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 93, Short.MAX_VALUE)
                                 .addGap(18, 18, 18))
                             .addGroup(layout.createSequentialGroup()
                                 .addGap(49, 49, 49)
@@ -1141,6 +1163,43 @@ public class MainWindow extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "Sintax Error: \nSee Sintax Analisys field to get more info.");
         }
     }//GEN-LAST:event_AnalizeActionPerformed
+
+    private void AddFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_AddFileActionPerformed
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileFilter(new FileNameExtensionFilter("Archivos de texto", "txt"));
+
+        int seleccion = fileChooser.showOpenDialog(null);
+
+        if (seleccion == JFileChooser.APPROVE_OPTION) {
+            String path = fileChooser.getSelectedFile().getAbsolutePath();
+            File file = new File(path);
+            try (FileReader fr = new FileReader(file))
+            {
+                char[] chars = new char[(int)file.length()];
+                fr.read(chars);
+ 
+                String fileContent = new String(chars);
+                //fileContent = fileContent.replaceAll("[\\p{Z}\\p{C}]+", "");
+                //fileContent = fileContent.replaceAll(" ", "");
+                fileContent = fileContent.replace("\r", "");
+                this.SourceCode.setText(fileContent);
+                boolean lexicalAnalisys = this.LexicalAnalisys(fileContent);
+                if(!lexicalAnalisys){
+                    return;
+                }
+                boolean sintaxAnalisysResult = this.programa(TL);
+                if(sintaxAnalisysResult){
+                    this.SintaxMessages.setText("No sintax errors during analisys.");
+                }else{
+                    JOptionPane.showMessageDialog(this, "Sintax Error: \nSee Sintax Analisys field to get more info.");
+                } 
+            }
+            catch (IOException e) {
+            e.printStackTrace();
+            }
+        }
+       
+    }//GEN-LAST:event_AddFileActionPerformed
 
     /**
      * @param args the command line arguments
@@ -1178,6 +1237,7 @@ public class MainWindow extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton AddFile;
     private javax.swing.JButton Analize;
     private javax.swing.JTextArea SemanticMessages;
     private javax.swing.JTextArea SintaxMessages;
