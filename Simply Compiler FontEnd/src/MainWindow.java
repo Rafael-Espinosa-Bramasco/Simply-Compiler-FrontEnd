@@ -3,9 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -37,6 +35,7 @@ public class MainWindow extends javax.swing.JFrame {
     int TNum;
     
     boolean error;
+    boolean semError;
     
     TOKEN lastToken;
     
@@ -46,6 +45,9 @@ public class MainWindow extends javax.swing.JFrame {
     
     int ifCount;
     int whileCount;
+    
+    int lval, rval;
+    boolean compError;
     
     DefaultTableModel TokensTableModel;
     
@@ -488,6 +490,7 @@ public class MainWindow extends javax.swing.JFrame {
    
     private boolean declaraciones(ArrayList<TOKEN> TL){
         if(TL.isEmpty() || !declaracion(TL)){
+            sintaxError("Init Section and Orders Section");
             return false;
         }
         if(!isSemiColon(TL.get(0))){
@@ -539,10 +542,16 @@ public class MainWindow extends javax.swing.JFrame {
         if(TL.isEmpty() || !identificador(TL)){
             return false;
         }
-        aux1.setID(lastToken.getTokenName());
-        aux1.setValue("N/A");
+        
+        if(symbolExists(lastToken.getTokenName())){
+            semanticError("Symbol '".concat(lastToken.getTokenName()).concat("' is beign re-declared."));
+        }else{
+            aux1.setID(lastToken.getTokenName());
+            aux1.setValue("N/A");
 
-        Symbols.add(aux1);
+            Symbols.add(aux1);
+        }
+        
         return sig_lista_variables(TL);
     }
     
@@ -697,15 +706,15 @@ public class MainWindow extends javax.swing.JFrame {
             return false;
         }
         
-        if(isEnd(TL.get(0))){
+        if(!TL.isEmpty() && isEnd(TL.get(0))){
             lastToken = TL.get(0);
             TL.remove(0);
             return true;
-        }else if(isElse(TL.get(0))){
+        }else if(!TL.isEmpty() && isElse(TL.get(0))){
             lastToken = TL.get(0);
             TL.remove(0);
             if(ordenes(TL)){
-                if(isEnd(TL.get(0))){
+                if(!TL.isEmpty() && isEnd(TL.get(0))){
                     lastToken = TL.get(0);
                     TL.remove(0);
                     return true;
@@ -721,7 +730,25 @@ public class MainWindow extends javax.swing.JFrame {
     }
     
     private boolean comparacion(ArrayList<TOKEN> TL){
-        return operador(TL) && condicion_op(TL) && operador(TL);
+        if(operador(TL,0)){
+            if(condicion_op(TL)){
+                if(operador(TL,1)){
+                    if(!compError){
+                        if(lval != rval){
+                            if(lval == 0){
+                                semanticError("Incompatible Data Types! (Entero and Real)");
+                            }else{
+                                semanticError("Incompatible Data Types! (Real and Entero)");
+                            }
+                        }
+                    }
+                    compError = false;
+                    return true;
+                }
+            }
+        }
+        
+        return false;
     }
     
     private boolean condicion_op(ArrayList<TOKEN> TL){
@@ -734,10 +761,33 @@ public class MainWindow extends javax.swing.JFrame {
         return false;
     }
     
-    private boolean operador(ArrayList<TOKEN> TL){
+    private boolean operador(ArrayList<TOKEN> TL, int side){
         if(!TL.isEmpty() && isID(TL.get(0))){
+            if(!symbolExists(TL.get(0).getTokenName())){
+                semanticError("The ID '".concat(TL.get(0).getTokenName()).concat("' doesnt Exist!"));
+                compError = true;
+            }else{
+                if(side == 0){
+                    lval = getSymbolDT(TL.get(0).getTokenName());
+                }else{
+                    rval = getSymbolDT(TL.get(0).getTokenName());
+                }
+            }
+            
             return identificador(TL);
-        }else if(isEntero(TL.get(0)) || isFloat(TL.get(0))){
+        }else if(isEntero(TL.get(0))){
+            if(side == 0){
+                lval = 0;
+            }else{
+                rval = 0;
+            }
+            return numeros(TL);
+        }else if(isFloat(TL.get(0))){
+            if(side == 0){
+                lval = 1;
+            }else{
+                rval = 1;
+            }
             return numeros(TL);
         }
         sintaxError("Identifier or Number");
@@ -828,11 +878,33 @@ public class MainWindow extends javax.swing.JFrame {
     }
     
     private boolean asignar(ArrayList<TOKEN> TL){
+        
         if(!TL.isEmpty() && identificador(TL)){
+            if(!symbolExists(lastToken.getTokenName())){
+                semanticError("The ID '".concat(lastToken.getTokenName()).concat("' doesnt Exist!"));
+                compError = true;
+            }else{
+                lval = getSymbolDT(lastToken.getTokenName());
+            }
+            
             if(isAsignSymbol(TL.get(0))){
                 lastToken = TL.get(0);
                 TL.remove(0);
-                return expresion_arit(TL);
+                rval = -1; // is entero... i think
+                if(expresion_arit(TL)){
+                    if(!compError){
+                        if(lval != rval){
+                            if(lval == 0){
+                                semanticError("Incompatible Data Types! (Entero and Real)");
+                            }else{
+                                semanticError("Incompatible Data Types! (Real and Entero)");
+                            }
+                        }
+                    }
+                    compError = false;
+                    return true;
+                }
+                return false;
             }
             sintaxError("Asign Symbol");
         }
@@ -867,23 +939,52 @@ public class MainWindow extends javax.swing.JFrame {
                     compList.remove(compList.size() - 1);
 
                     if(expresion_arit(compList)){
-                        if(operador_arit(compList)){
-                            if(expresion_arit(compList)){
-                                return exp_arit(TL);
-                            }
-                        }else{
-                            return false;
-                        }
+                        return exp_arit(TL);
                     }else{
                         return false;
                     }
                 }
             }else if(!TL.isEmpty() && isID(TL.get(0))){
                 if(identificador(TL)){
+                    if(!symbolExists(lastToken.getTokenName())){
+                        semanticError("The ID '".concat(lastToken.getTokenName()).concat("' doesnt Exist!"));
+                        compError = true;
+                    }else{
+                        if(rval == -1){
+                            rval = getSymbolDT(lastToken.getTokenName());
+                        }else{
+                            if(rval != getSymbolDT(lastToken.getTokenName()) && !compError){
+                                rval = getSymbolDT(lastToken.getTokenName());
+                                compError = true;
+                                semanticError("Mixing data types on expression!.");
+                            }
+                        }
+                    }
                     return(exp_arit(TL));
                 }    
             }else if(!TL.isEmpty() && isNumber(TL.get(0))){
                 if(numeros(TL)){
+                    if(rval == -1){
+                        if(isEntero(lastToken)){
+                            rval = 0;
+                        }else{
+                            rval = 1;
+                        }
+                    }else{
+                        if(isEntero(lastToken)){
+                            if(rval != 0 && !compError){
+                                rval = 1;
+                                compError = true;
+                                semanticError("Mixing data types on expression!.");
+                            }
+                        }else{
+                            if(rval != 1 && !compError){
+                                rval = 0;
+                                compError = true;
+                                semanticError("Mixing data types on expression!.");
+                            }
+                        }
+                    }
                     return(exp_arit(TL));
                 }   
         }
@@ -920,11 +1021,31 @@ public class MainWindow extends javax.swing.JFrame {
     }
     
     private void clearAllFields(){
+        this.compError = false;
         this.lastToken = null;
         this.error = false;
+        this.semError = false;
         this.clearTokensTable();
         this.SintaxMessages.setText("");
         this.SemanticMessages.setText("");
+    }
+    
+    private boolean symbolExists(String s){
+        for(int i = 0 ; i < Symbols.size() ; i++){
+            if(Symbols.get(i).getID().equals(s)){
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    private int getSymbolDT(String s){
+        for(int i = 0 ; i < Symbols.size() ; i++){
+            if(Symbols.get(i).getID().equals(s)){
+                return Symbols.get(i).getDT();
+            }
+        }
+        return -1;
     }
     
     private void sintaxError(String message){
@@ -983,10 +1104,67 @@ public class MainWindow extends javax.swing.JFrame {
         }
     }
     
-    private void semanticError(){}
+    private void semanticError(String message){
+        if(lastToken == null){
+            addSemanticError("Semantic Error: \n");
+            addSemanticError("\tAl Line ");
+            addSemanticError("N/A");
+            addSemanticError(", Token Number ");
+            addSemanticError("N/A");
+            addSemanticError(":\n\t");
+
+            addSemanticError("N/A\n\t");
+
+            addSemanticError("^\n");
+            addSemanticError("Expected: ");
+            addSemanticError(message);
+
+        }else{
+            addSemanticError("Semantic Error: \n");
+            addSemanticError("\tAl Line ");
+            addSemanticError(String.valueOf(lastToken.getNumLine()));
+            addSemanticError(", Token Number ");
+            addSemanticError(String.valueOf(lastToken.getNumToken()));
+            addSemanticError(":\n\t");
+
+            int len = 0;
+            boolean flag = true;
+            for(int i = 0 ; i < TL.size() ; i++){
+                if(lastToken.comp(TL.get(i))){
+                    flag = false;
+                }
+
+                if(lastToken.getNumLine() == TL.get(i).getNumLine()){
+                    addSemanticError(TL.get(i).getTokenName());
+                    addSemanticError(" ");
+
+                    if(flag){
+                        len += TL.get(i).getTokenName().length() + 1;
+                    }
+                }
+            }
+
+            addSemanticError("\n\t");
+
+            for(int i = 1 ; i < len ; i++){
+                addSemanticError("*");
+            }
+            addSemanticError("^\n");
+            addSemanticError("More Info.: ");
+            addSemanticError(message);
+        }
+        
+        addSemanticError("\n\n");
+        
+        this.semError = true;
+    }
     
     private void addSintaxError(String s){
         this.SintaxMessages.setText(this.SintaxMessages.getText().concat(s));
+    }
+    
+    private void addSemanticError(String s){
+        this.SemanticMessages.setText(this.SemanticMessages.getText().concat(s));
     }
     
     /**
@@ -1163,6 +1341,12 @@ public class MainWindow extends javax.swing.JFrame {
         }else{
             JOptionPane.showMessageDialog(this, "Sintax Error: \nSee Sintax Analisys field to get more info.");
         }
+        
+        if(!semError){
+            this.SemanticMessages.setText("No semantic errors during analisys.");
+        }else{
+            JOptionPane.showMessageDialog(this, "Semantic Error: \nSee Semantic Analisys field to get more info.");
+        }
     }//GEN-LAST:event_AnalizeActionPerformed
 
     private void AddFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_AddFileActionPerformed
@@ -1184,6 +1368,7 @@ public class MainWindow extends javax.swing.JFrame {
                 //fileContent = fileContent.replaceAll(" ", "");
                 fileContent = fileContent.replace("\r", "");
                 this.SourceCode.setText(fileContent);
+                this.clearAllFields();
                 boolean lexicalAnalisys = this.LexicalAnalisys(fileContent);
                 if(!lexicalAnalisys){
                     return;
@@ -1193,7 +1378,13 @@ public class MainWindow extends javax.swing.JFrame {
                     this.SintaxMessages.setText("No sintax errors during analisys.");
                 }else{
                     JOptionPane.showMessageDialog(this, "Sintax Error: \nSee Sintax Analisys field to get more info.");
-                } 
+                }
+                
+                if(!semError){
+                    this.SemanticMessages.setText("No semantic errors during analisys.");
+                }else{
+                    JOptionPane.showMessageDialog(this, "Semantic Error: \nSee Semantic Analisys field to get more info.");
+                }
             }
             catch (IOException e) {
             e.printStackTrace();

@@ -1,0 +1,20 @@
+begin
+	entero x,y;
+	real z,a;
+	
+	x := 8;
+	y := 8;
+	
+	if(x > y)
+		z := 6.7;
+		a := 9.9;
+		
+		a := z + a;
+		
+		while(a < 100.5)
+			a := z + a;
+		endwhile;
+	else
+		x := y + 15;
+	end;
+end
