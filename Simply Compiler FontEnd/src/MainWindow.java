@@ -1151,7 +1151,6 @@ public class MainWindow extends javax.swing.JFrame {
     private void AddFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_AddFileActionPerformed
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileFilter(new FileNameExtensionFilter("Archivos de texto", "txt"));
-
         int seleccion = fileChooser.showOpenDialog(null);
 
         if (seleccion == JFileChooser.APPROVE_OPTION) {
@@ -1161,11 +1160,9 @@ public class MainWindow extends javax.swing.JFrame {
             {
                 char[] chars = new char[(int)file.length()];
                 fr.read(chars);
- 
                 String fileContent = new String(chars);
-                //fileContent = fileContent.replaceAll("[\\p{Z}\\p{C}]+", "");
-                //fileContent = fileContent.replaceAll(" ", "");
                 fileContent = fileContent.replace("\r", "");
+                
                 this.SourceCode.setText(fileContent);
                 boolean lexicalAnalisys = this.LexicalAnalisys(fileContent);
                 if(!lexicalAnalisys){
