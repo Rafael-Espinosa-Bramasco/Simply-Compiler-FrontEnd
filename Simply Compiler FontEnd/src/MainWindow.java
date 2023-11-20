@@ -40,7 +40,7 @@ public class MainWindow extends javax.swing.JFrame {
     TOKEN lastToken;
     
     int lastDT;
-    STO aux1, aux2;
+    STO aux1;
     ArrayList<STO> Symbols;
     
     int ifCount;
@@ -50,6 +50,10 @@ public class MainWindow extends javax.swing.JFrame {
     boolean compError;
     
     DefaultTableModel TokensTableModel;
+    
+    TreeNode AnalisisTree;
+    
+    ArrayList<TreeNode> toEXP;
     
     // Functions
     private void fillTokensTable(){
@@ -83,6 +87,10 @@ public class MainWindow extends javax.swing.JFrame {
                     TL.get(i).setTokenType("Integer Keyword");
                 }else if(isRealKW(TL.get(i))){
                     TL.get(i).setTokenType("Float Keyword");
+                }else if(isOut(TL.get(i))){
+                    TL.get(i).setTokenType("Out Keyword");
+                }else if(isIn(TL.get(i))){
+                    TL.get(i).setTokenType("In Keyword");
                 }
             }else if(isType(TL.get(i))){
                 if(isEntero(TL.get(i))){
@@ -104,8 +112,9 @@ public class MainWindow extends javax.swing.JFrame {
                 TL.get(i).setTokenType("Logical Operator");
             }else if(isMathOperator(TL.get(i))){
                 TL.get(i).setTokenType("Math Operator");
-            }
-            else if(isID(TL.get(i))){
+            }else if(isFlux(TL.get(i))){
+                TL.get(i).setTokenType("Flux Operator");
+            }else if(isID(TL.get(i))){
                 TL.get(i).setTokenType("Identifier");
             }
         }
@@ -215,7 +224,7 @@ public class MainWindow extends javax.swing.JFrame {
                     }
                     case '>' -> {
                         i++;
-                        if(i < code.length() && code.charAt(i) == '='){
+                        if(i < code.length() && code.charAt(i) == '=' || code.charAt(i) == '>'){
                             AT = AT + c;
                         }else{
                             i--;
@@ -340,6 +349,18 @@ public class MainWindow extends javax.swing.JFrame {
      private boolean isComa(TOKEN t){
         return ",".equals(t.getTokenName());
     }
+     
+    private boolean isFlux(TOKEN t){
+        return ">>".equals(t.getTokenName());
+    }
+    
+    private boolean isOut(TOKEN t){
+        return "out".equals(t.getTokenName());
+    }
+    
+    private boolean isIn(TOKEN t){
+        return "in".equals(t.getTokenName());
+    }
     
     private boolean isID(TOKEN token){
         if(isRWord(token)){
@@ -368,6 +389,8 @@ public class MainWindow extends javax.swing.JFrame {
        reservedWords.add("end");
        reservedWords.add("entero");
        reservedWords.add("real");
+       reservedWords.add("out");
+       reservedWords.add("in");
        reservedWords.add("if");
        reservedWords.add("else");
        reservedWords.add("while");
@@ -457,6 +480,11 @@ public class MainWindow extends javax.swing.JFrame {
     //===========================================//
     
     private boolean  programa(ArrayList<TOKEN> TL){
+        
+        this.toEXP = new ArrayList<>();
+        
+        this.AnalisisTree = new TreeNode("<P>");
+        
         if(TL.isEmpty()){
             sintaxError("No tokens given");
             return false;
@@ -474,11 +502,15 @@ public class MainWindow extends javax.swing.JFrame {
             TLcopy.remove(0);
             TLcopy.remove(TLcopy.size()-1);
             
-            if(!(d = declaraciones(TLcopy))){
+            this.AnalisisTree.addSon(new TreeNode("<D>"));
+            
+            if(!(d = declaraciones(TLcopy, this.AnalisisTree.getSon(0)))){
                 return false;
             }
 
-            o = ordenes(TLcopy);
+            this.AnalisisTree.addSon(new TreeNode("<O>"));
+            
+            o = ordenes(TLcopy, this.AnalisisTree.getSon(1));
 
             return ( d && o) && ifCount == 0 && whileCount == 0;
         }
@@ -488,8 +520,8 @@ public class MainWindow extends javax.swing.JFrame {
     }
     
    
-    private boolean declaraciones(ArrayList<TOKEN> TL){
-        if(TL.isEmpty() || !declaracion(TL)){
+    private boolean declaraciones(ArrayList<TOKEN> TL, TreeNode T){
+        if(TL.isEmpty() || !declaracion(TL, T)){
             sintaxError("Init Section and Orders Section");
             return false;
         }
@@ -500,14 +532,14 @@ public class MainWindow extends javax.swing.JFrame {
         lastToken = TL.get(0);
         TL.remove(0);
         
-        return sig_declaracion(TL);
+        return sig_declaracion(TL, T);
     }
   
-    private boolean sig_declaracion(ArrayList<TOKEN> TL){
+    private boolean sig_declaracion(ArrayList<TOKEN> TL, TreeNode T){
         if(TL.isEmpty() || !isDT(TL.get(0))){
             return true;
         }
-        if(!declaracion(TL)){
+        if(!declaracion(TL, T)){
             return false;
         }
         if(!isSemiColon(TL.get(0))){
@@ -516,14 +548,17 @@ public class MainWindow extends javax.swing.JFrame {
         }
         lastToken = TL.get(0);
         TL.remove(0);
-        return sig_declaracion(TL);
+        return sig_declaracion(TL, T);
     }
     
-    private boolean declaracion(ArrayList<TOKEN> TL){
+    private boolean declaracion(ArrayList<TOKEN> TL, TreeNode T){
         if(TL.isEmpty() || !tipo(TL)){
             return false;
         }
-        return lista_variables(TL);
+        
+        T.addSon(new TreeNode(lastToken.getTokenName()));
+        
+        return lista_variables(TL, T.getSon(T.getSonsSize() - 1));
     }
     private boolean tipo(ArrayList<TOKEN> TL){
         if(isDT(TL.get(0))){
@@ -538,10 +573,12 @@ public class MainWindow extends javax.swing.JFrame {
         sintaxError("A data type");
         return false;
     }
-    private boolean lista_variables(ArrayList<TOKEN> TL){
+    private boolean lista_variables(ArrayList<TOKEN> TL, TreeNode T){
         if(TL.isEmpty() || !identificador(TL)){
             return false;
         }
+        
+        T.addSon(new TreeNode(lastToken.getTokenName()));
         
         if(symbolExists(lastToken.getTokenName())){
             semanticError("Symbol '".concat(lastToken.getTokenName()).concat("' is beign re-declared."));
@@ -552,10 +589,10 @@ public class MainWindow extends javax.swing.JFrame {
             Symbols.add(aux1);
         }
         
-        return sig_lista_variables(TL);
+        return sig_lista_variables(TL, T);
     }
     
-    private boolean sig_lista_variables(ArrayList<TOKEN> TL){
+    private boolean sig_lista_variables(ArrayList<TOKEN> TL, TreeNode T){
         if(TL.isEmpty() || isSemiColon(TL.get(0))){
             return true;
         }
@@ -566,7 +603,7 @@ public class MainWindow extends javax.swing.JFrame {
             aux1.setDT(lastDT);
             
             TL.remove(0);
-            return lista_variables(TL);
+            return lista_variables(TL, T);
         }
         
         sintaxError("Coma");
@@ -584,8 +621,8 @@ public class MainWindow extends javax.swing.JFrame {
        return false;
     }
     
-    private boolean ordenes(ArrayList<TOKEN> TL){
-        if(orden(TL)){
+    private boolean ordenes(ArrayList<TOKEN> TL, TreeNode T){
+        if(orden(TL, T)){
             if(!TL.isEmpty() && isSemiColon(TL.get(0))){
                 lastToken = TL.get(0);
                 TL.remove(0);
@@ -634,14 +671,18 @@ public class MainWindow extends javax.swing.JFrame {
         return false;
     }
     
-    private boolean orden(ArrayList<TOKEN> TL){
+    private boolean orden(ArrayList<TOKEN> TL, TreeNode T){
         
         if(!TL.isEmpty() && isID(TL.get(0))){
-            return asignar(TL);
+            return asignar(TL, T);
         }else if(!TL.isEmpty() && isIf(TL.get(0))){
             return condicion(TL);
         }else if(!TL.isEmpty() && isWhile(TL.get(0))){
             return bucle_while(TL);
+        }else if(!TL.isEmpty() && isOut(TL.get(0))){
+            return out(TL);
+        }else if(!TL.isEmpty() && isIn(TL.get(0))){
+            return in(TL);
         }
         
         sintaxError("Identifier or if or while");
@@ -794,6 +835,46 @@ public class MainWindow extends javax.swing.JFrame {
         return false;
     }
     
+    private boolean out(ArrayList<TOKEN> TL){
+        if(isOut(TL.get(0))){
+            lastToken = TL.get(0);
+            TL.remove(0);
+            
+            if(!TL.isEmpty() && isFlux(TL.get(0))){
+                lastToken = TL.get(0);
+                TL.remove(0);
+                
+                rval = -1;
+                return this.expresion_arit(TL);
+            }
+            
+            sintaxError("Flux operator >>");
+            return false;
+        }
+        
+        sintaxError("out Keyword");
+        return false;
+    }
+    
+    private boolean in(ArrayList<TOKEN> TL){
+        if(isIn(TL.get(0))){
+            lastToken = TL.get(0);
+            TL.remove(0);
+            
+            if(!TL.isEmpty() && isFlux(TL.get(0))){
+                lastToken = TL.get(0);
+                TL.remove(0);
+                
+                return this.identificador(TL);
+            }
+            
+            sintaxError("Flux operator >>");
+        }
+        
+        sintaxError("in Keyword");
+        return false;
+    }
+    
     private boolean numeros(ArrayList<TOKEN> TL){
         if(!TL.isEmpty() && isEntero(TL.get(0))){
             return numero_entero(TL);
@@ -877,7 +958,13 @@ public class MainWindow extends javax.swing.JFrame {
         return false;
     }
     
-    private boolean asignar(ArrayList<TOKEN> TL){
+    private TreeNode convertToExpressionTree(){
+        TreeNode RES;
+        
+        return RES;
+    }
+    
+    private boolean asignar(ArrayList<TOKEN> TL, TreeNode T){
         
         if(!TL.isEmpty() && identificador(TL)){
             if(!symbolExists(lastToken.getTokenName())){
@@ -887,10 +974,22 @@ public class MainWindow extends javax.swing.JFrame {
                 lval = getSymbolDT(lastToken.getTokenName());
             }
             
+            TreeNode LV = new TreeNode(lastToken.getTokenName());
+            
             if(isAsignSymbol(TL.get(0))){
                 lastToken = TL.get(0);
                 TL.remove(0);
+                
+                TreeNode A = new TreeNode(lastToken.getTokenName());
+                
                 rval = -1; // is entero... i think
+                
+                A.addSon(LV);
+                
+                A.addSon(this.convertToExpressionTree());
+                
+                T.addSon(A);
+                
                 if(expresion_arit(TL)){
                     if(!compError){
                         if(lval != rval){
@@ -918,6 +1017,8 @@ public class MainWindow extends javax.swing.JFrame {
                 
                 lastToken = TL.get(0);
                 TL.remove(0);
+                
+                this.toEXP.add(new TreeNode(lastToken.getTokenName()));
 
                 int opCount = 1;
                 while(!TL.isEmpty() && opCount > 0){
@@ -926,6 +1027,9 @@ public class MainWindow extends javax.swing.JFrame {
                     }else if(isClosePar(TL.get(0))){
                         opCount--;
                     }
+                    
+                    this.toEXP.add(new TreeNode(lastToken.getTokenName()));
+                    
                     compList.add(TL.get(0));
                     TL.remove(0);
                 }
@@ -946,6 +1050,9 @@ public class MainWindow extends javax.swing.JFrame {
                 }
             }else if(!TL.isEmpty() && isID(TL.get(0))){
                 if(identificador(TL)){
+                    
+                    this.toEXP.add(new TreeNode(lastToken.getTokenName()));
+                    
                     if(!symbolExists(lastToken.getTokenName())){
                         semanticError("The ID '".concat(lastToken.getTokenName()).concat("' doesnt Exist!"));
                         compError = true;
@@ -964,6 +1071,9 @@ public class MainWindow extends javax.swing.JFrame {
                 }    
             }else if(!TL.isEmpty() && isNumber(TL.get(0))){
                 if(numeros(TL)){
+                    
+                    this.toEXP.add(new TreeNode(lastToken.getTokenName()));
+                    
                     if(rval == -1){
                         if(isEntero(lastToken)){
                             rval = 0;
@@ -998,6 +1108,9 @@ public class MainWindow extends javax.swing.JFrame {
         }
         
         if(operador_arit(TL)){
+            
+            this.toEXP.add(new TreeNode(lastToken.getTokenName()));
+            
             if(expresion_arit(TL)){
                 return exp_arit(TL);
             }
@@ -1336,6 +1449,10 @@ public class MainWindow extends javax.swing.JFrame {
         
         boolean sintaxAnalisysResult = this.programa(TL);
         
+        if(sintaxAnalisysResult && !semError){
+            // 3AC
+        }
+        
         if(sintaxAnalisysResult){
             this.SintaxMessages.setText("No sintax errors during analisys.");
         }else{
@@ -1374,6 +1491,11 @@ public class MainWindow extends javax.swing.JFrame {
                     return;
                 }
                 boolean sintaxAnalisysResult = this.programa(TL);
+                
+                if(sintaxAnalisysResult && !semError){
+                    // 3AC
+                }
+                
                 if(sintaxAnalisysResult){
                     this.SintaxMessages.setText("No sintax errors during analisys.");
                 }else{
