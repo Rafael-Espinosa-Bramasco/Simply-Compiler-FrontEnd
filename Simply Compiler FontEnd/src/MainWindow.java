@@ -56,6 +56,8 @@ public class MainWindow extends javax.swing.JFrame {
     
     ArrayList<TreeNode> toEXP;
     
+    ArrayList<QUAD> quadruplo;
+    
     // Functions
     private void fillTokensTable(){
         clearTokensTable();
@@ -1064,34 +1066,90 @@ public class MainWindow extends javax.swing.JFrame {
         return false;
     }
     
-    private TreeNode convertToExpressionTree(){
-        
-        if(this.toEXP.size() == 1){
-            TreeNode xd = toEXP.get(0);
-            this.toEXP.clear();
-            return xd;
+    private boolean morePrecedence(String o1, String o2){
+        switch(o1){
+            case "+", "-" -> {
+                switch(o2){
+                    case "+", "-" -> {
+                        return false;
+                    }
+                    case "*", "/" -> {
+                        return false;
+                    }
+                }
+            }
+            case "*", "/" -> {
+                switch(o2){
+                    case "+", "-" -> {
+                        return true;
+                    }
+                    case "*", "/" -> {
+                        return false;
+                    }
+                }
+            }
         }
-        
+        return false;
+    }
+    
+    private boolean diffClass(String o1, String o2){
+        switch(o1){
+            case "+", "-" -> {
+                switch(o2){
+                    case "+", "-" -> {
+                        return false;
+                    }
+                    case "*", "/" -> {
+                        return true;
+                    }
+                }
+            }
+            case "*", "/" -> {
+                switch(o2){
+                    case "+", "-" -> {
+                        return true;
+                    }
+                    case "*", "/" -> {
+                        return false;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+    
+    private TreeNode convertToExpressionTree(){
         ArrayList<TreeNode> COR = new ArrayList<>();
         
         // Correct list
         for(int i = 0 ; i < this.toEXP.size() ; i++){
-            if("(".equals(this.toEXP.get(i).getItem())){
-                continue;
-            }
             COR.add(this.toEXP.get(i));
         }
         
         ArrayList<TreeNode> postFixResult = new ArrayList<>();
         Stack<TreeNode> operatorStack = new Stack<>();
         
+        int openpar = 0;
         for(int i = 0 ; i < COR.size() ; i++){
             if(isID(COR.get(i).getItem()) || isFloat(COR.get(i).getItem()) || isEntero(COR.get(i).getItem())){
                 postFixResult.add(COR.get(i));
-            }else if(")".equals(COR.get(i).getItem())){
+            }else if(")".equals(COR.get(i).getItem()) && !operatorStack.isEmpty()){
                 postFixResult.add(operatorStack.pop());
-            }else{
-                operatorStack.add(COR.get(i));
+            }else if("(".equals(COR.get(i).getItem())){
+                openpar++; 
+            }else if(isMathOperator(COR.get(i).getItem())){
+                // is Operator
+                if(operatorStack.isEmpty() && openpar == 0){
+                    operatorStack.add(COR.get(i));
+                }else if(openpar > 0){
+                    openpar--;
+                    operatorStack.add(COR.get(i));
+                }else if(!this.morePrecedence(COR.get(i).getItem(), operatorStack.peek().getItem()) && diffClass(COR.get(i).getItem(), operatorStack.peek().getItem())){
+                    postFixResult.add(operatorStack.pop());
+                    operatorStack.add(COR.get(i));
+                }else{
+                    operatorStack.add(COR.get(i));
+                }
             }
         }
         
@@ -1099,60 +1157,42 @@ public class MainWindow extends javax.swing.JFrame {
             postFixResult.add(operatorStack.pop());
         }
         
+        for(int i = 0 ; i < postFixResult.size() ; i++){
+            System.out.print(postFixResult.get(i).getItem());
+        }
+        System.out.println("");
+        System.out.println("");
+        
         // Create nodes to return
-        
-        ArrayList<TreeNode> COPY = new ArrayList<>();
         TreeNode R = null, O, L = null;
+        int index;
         
-        boolean rTurn = false;
-        
-        while(!postFixResult.isEmpty()){
+        while(postFixResult.size() > 1){
+            index = this.getLeafOperatorIndex(postFixResult);
+            O = postFixResult.get(index);
+            R = postFixResult.get(index - 1);
+            L = postFixResult.get(index - 2);
             
-            if(postFixResult.get(0).isLeaf() && isMathOperator(postFixResult.get(0).getItem())){ 
-                O = postFixResult.get(0);
-                postFixResult.remove(0);
-                
-                O.addSon(L);
-                O.addSon(R);
-                
-                COPY.add(O);
-                
-                if(postFixResult.isEmpty()){
-                    this.toEXP.clear();
-                    return O;
-                }
-                
-                COPY.addAll(postFixResult);
-                
-                postFixResult = (ArrayList<TreeNode>) COPY.clone();
-                COPY.clear();
-                
-                L = null;
-                R = null;
-            }else{
-                if(rTurn){
-                    if(R != null){
-                        COPY.add(R);
-                    }
-                    
-                    R = postFixResult.get(0);
-                    postFixResult.remove(0);
-                }else{
-                    if(L != null){
-                        COPY.add(L);
-                    }
-                    
-                    L = postFixResult.get(0);
-                    postFixResult.remove(0);
-                }
-                
-                rTurn = !rTurn;
-            }
+            O.addSon(L);
+            O.addSon(R);
+            
+            postFixResult.remove(index - 2);
+            postFixResult.remove(index - 2);
         }
         
         this.toEXP.clear();
         
         return postFixResult.get(0);
+    }
+    
+    private int getLeafOperatorIndex(ArrayList<TreeNode> a){
+        for(int i = 0 ; i < a.size() ; i++){
+            if(a.get(i).isLeaf() && isMathOperator(a.get(i).getItem())){
+                return i;
+            }
+        }
+        
+        return -1;
     }
     
     private boolean asignar(ArrayList<TOKEN> TL, TreeNode T){
@@ -1228,7 +1268,7 @@ public class MainWindow extends javax.swing.JFrame {
                     sintaxError("Balanced parenthesis");
                     return false;
                 }else{
-                    lastToken = TL.get(0);
+                    lastToken = compList.get(0);
                     compList.remove(0);
                     compList.remove(compList.size() - 1);
 
@@ -1628,21 +1668,24 @@ public class MainWindow extends javax.swing.JFrame {
         pack();
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
-
-    private void printTree(){
-        printInOrder(this.AnalisisTree);
+    
+    private void processDeclarations(TreeNode t){
+        for(int i = 0 ; i < t.getSonsSize() ; i++){
+            this.addDT(t.getSon(i));
+        }
     }
     
-    private void printInOrder(TreeNode t){
-        if(t.isLeaf()){
-            System.out.println(t.getItem());
-            return;
-        }
-        
+    private void addDT(TreeNode t){
         for(int i = 0 ; i < t.getSonsSize() ; i++){
-            printInOrder(t.getSon(i));
+            this.addVariableD(t.getSon(i),t.getItem());
         }
     }
+    
+    private void addVariableD(TreeNode t, String type){
+        this.quadruplo.add(new QUAD(type,t.getItem(),"",""));
+    }
+    
+    private void processOrders(TreeNode t){}
     
     private void AnalizeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_AnalizeActionPerformed
         // TODO add your handling code here:
@@ -1656,7 +1699,10 @@ public class MainWindow extends javax.swing.JFrame {
         boolean sintaxAnalisysResult = this.programa(TL);
         
         if(sintaxAnalisysResult && !semError){
-            this.printTree();
+            this.quadruplo = new ArrayList<>();
+            
+            this.processDeclarations(this.AnalisisTree.getSon(0));
+            this.processOrders(this.AnalisisTree.getSon(1));
         }
         
         if(sintaxAnalisysResult){
