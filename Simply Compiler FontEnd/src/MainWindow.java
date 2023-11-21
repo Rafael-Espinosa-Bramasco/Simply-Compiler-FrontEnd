@@ -1685,7 +1685,37 @@ public class MainWindow extends javax.swing.JFrame {
         this.quadruplo.add(new QUAD(type,t.getItem(),"",""));
     }
     
-    private void processOrders(TreeNode t){}
+    private void processOrders(TreeNode t){
+        for(int i = 0 ; i < t.getSonsSize() ; i++){
+            switch(t.getSon(i).getItem()){
+                case "while" -> {
+                    orderWhile(t.getSon(i));
+                }
+                case "in" -> {
+                    orderIn(t.getSon(i));
+                }
+                case "out" -> {
+                    orderOut(t.getSon(i));
+                }
+                case "if" -> {
+                    orderIf(t.getSon(i));
+                }
+                case ":=" -> {
+                    orderAsign(t.getSon(i));
+                }
+            }
+        }
+    }
+    
+    private void orderWhile(TreeNode t){}
+    
+    private void orderIn(TreeNode t){}
+    
+    private void orderOut(TreeNode t){}
+    
+    private void orderIf(TreeNode t){}
+    
+    private void orderAsign(TreeNode t){}
     
     private void AnalizeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_AnalizeActionPerformed
         // TODO add your handling code here:
