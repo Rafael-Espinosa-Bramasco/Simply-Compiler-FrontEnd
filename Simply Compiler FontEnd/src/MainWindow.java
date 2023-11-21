@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Stack;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -217,7 +218,7 @@ public class MainWindow extends javax.swing.JFrame {
                         i++;
                         
                         if(i < code.length() && (code.charAt(i) == '=' || code.charAt(i) == '>')){
-                            AT = AT + c;
+                            AT = AT + code.charAt(i);
                         }else{
                             i--;
                         }
@@ -225,7 +226,7 @@ public class MainWindow extends javax.swing.JFrame {
                     case '>' -> {
                         i++;
                         if(i < code.length() && code.charAt(i) == '=' || code.charAt(i) == '>'){
-                            AT = AT + c;
+                            AT = AT + code.charAt(i);
                         }else{
                             i--;
                         }
@@ -346,6 +347,13 @@ public class MainWindow extends javax.swing.JFrame {
         return false;
     }
     
+    private boolean isMathOperator(String t){
+        switch(t){
+            case "+","-","/","*" -> {return true;}
+        }
+        return false;
+    }
+    
      private boolean isComa(TOKEN t){
         return ",".equals(t.getTokenName());
     }
@@ -381,9 +389,44 @@ public class MainWindow extends javax.swing.JFrame {
         
         return true;
     }
+    
+    private boolean isID(String t){
+        if(isRWord(t)){
+            return false;
+        }
+        
+        if(!isAlpha(t.charAt(0))){
+            return false;
+        }
+        
+        for(int i = 1 ; i < t.length() ; i++){
+            if(!isNumber(t.charAt(i)) || !isAlpha(t.charAt(i))){
+                return false;
+            }
+        }
+        
+        return true;
+    }
 
     private boolean isRWord(TOKEN T){
        String word = T.getTokenName();
+       ArrayList<String> reservedWords = new ArrayList<>();
+       reservedWords.add("begin");
+       reservedWords.add("end");
+       reservedWords.add("entero");
+       reservedWords.add("real");
+       reservedWords.add("out");
+       reservedWords.add("in");
+       reservedWords.add("if");
+       reservedWords.add("else");
+       reservedWords.add("while");
+       reservedWords.add("endwhile");
+       
+       return reservedWords.contains(word);
+          
+    }
+    
+    private boolean isRWord(String word){
        ArrayList<String> reservedWords = new ArrayList<>();
        reservedWords.add("begin");
        reservedWords.add("end");
@@ -470,8 +513,21 @@ public class MainWindow extends javax.swing.JFrame {
         return true;
     }
     
+    private boolean isEntero(String t){
+        for(int i=0; i< t.length(); i++){
+            if(!isNumber(t.charAt(i))){
+                return false;
+            }
+        }
+        return true;
+    }
+    
     private boolean isFloat(TOKEN token){
         String t = token.getTokenName();
+        return !(t.indexOf('.')== -1 || t.indexOf('.') == t.length()-1 || t.indexOf('.') != t.lastIndexOf('.'));
+    }
+    
+    private boolean isFloat(String t){
         return !(t.indexOf('.')== -1 || t.indexOf('.') == t.length()-1 || t.indexOf('.') != t.lastIndexOf('.'));
     }
     
@@ -631,13 +687,13 @@ public class MainWindow extends javax.swing.JFrame {
                 return false;
             }
             
-            return sig_ordenes(TL);
+            return sig_ordenes(TL, T);
         }
         
         return false;
     }
     
-    private boolean sig_ordenes(ArrayList<TOKEN> TL){
+    private boolean sig_ordenes(ArrayList<TOKEN> TL, TreeNode T){
         if(TL.isEmpty()){
             return true;
         }
@@ -656,7 +712,7 @@ public class MainWindow extends javax.swing.JFrame {
             return false;
         }
         
-        if(orden(TL)){
+        if(orden(TL, T)){
             if(!TL.isEmpty() && isSemiColon(TL.get(0))){
                 lastToken = TL.get(0);
                 TL.remove(0);
@@ -665,7 +721,7 @@ public class MainWindow extends javax.swing.JFrame {
                 return false;
             }
             
-            return sig_ordenes(TL);
+            return sig_ordenes(TL, T);
         }
         
         return false;
@@ -676,20 +732,20 @@ public class MainWindow extends javax.swing.JFrame {
         if(!TL.isEmpty() && isID(TL.get(0))){
             return asignar(TL, T);
         }else if(!TL.isEmpty() && isIf(TL.get(0))){
-            return condicion(TL);
+            return condicion(TL, T);
         }else if(!TL.isEmpty() && isWhile(TL.get(0))){
-            return bucle_while(TL);
+            return bucle_while(TL, T);
         }else if(!TL.isEmpty() && isOut(TL.get(0))){
-            return out(TL);
+            return out(TL, T);
         }else if(!TL.isEmpty() && isIn(TL.get(0))){
-            return in(TL);
+            return in(TL, T);
         }
         
         sintaxError("Identifier or if or while");
         return false;
     }
     
-    private boolean condicion(ArrayList<TOKEN> TL){
+    private boolean condicion(ArrayList<TOKEN> TL, TreeNode T){
         // check if
         if(!TL.isEmpty() && !isIf(TL.get(0))){
             sintaxError("if");
@@ -699,6 +755,9 @@ public class MainWindow extends javax.swing.JFrame {
         lastToken = TL.get(0);
         TL.remove(0);
         ifCount++;
+        
+        TreeNode ifNode = new TreeNode("if");
+        T.addSon(ifNode);
         
         if(!TL.isEmpty() && isOpenPar(TL.get(0))){
             ArrayList<TOKEN> compList = new ArrayList<>();
@@ -726,9 +785,12 @@ public class MainWindow extends javax.swing.JFrame {
                 compList.remove(0);
                 compList.remove(compList.size() - 1);
                 
-                if(comparacion(compList)){
-                    if(ordenes(TL)){
-                        return sig_condicion(TL);
+                if(comparacion(compList, ifNode)){
+                    TreeNode is = new TreeNode("is");
+                    ifNode.addSon(is);
+                    
+                    if(ordenes(TL,is)){
+                        return sig_condicion(TL, ifNode);
                     }else{
                         return false;
                     }
@@ -741,7 +803,7 @@ public class MainWindow extends javax.swing.JFrame {
         return false;
     }
     
-    private boolean sig_condicion(ArrayList<TOKEN> TL){
+    private boolean sig_condicion(ArrayList<TOKEN> TL, TreeNode T){
         if(TL.isEmpty()){
             sintaxError("end or else");
             return false;
@@ -754,7 +816,11 @@ public class MainWindow extends javax.swing.JFrame {
         }else if(!TL.isEmpty() && isElse(TL.get(0))){
             lastToken = TL.get(0);
             TL.remove(0);
-            if(ordenes(TL)){
+            
+            TreeNode elseNode = new TreeNode("else");
+            T.addSon(elseNode);
+            
+            if(ordenes(TL, elseNode)){
                 if(!TL.isEmpty() && isEnd(TL.get(0))){
                     lastToken = TL.get(0);
                     TL.remove(0);
@@ -770,10 +836,27 @@ public class MainWindow extends javax.swing.JFrame {
         return false;
     }
     
-    private boolean comparacion(ArrayList<TOKEN> TL){
+    private boolean comparacion(ArrayList<TOKEN> TL, TreeNode T){
+        
+        TreeNode LV, RV, OP;
+        
         if(operador(TL,0)){
+            
+            LV = new TreeNode(lastToken.getTokenName());
+            
             if(condicion_op(TL)){
+                
+                OP = new TreeNode(lastToken.getTokenName());
+                
                 if(operador(TL,1)){
+                    
+                    RV = new TreeNode(lastToken.getTokenName());
+                    
+                    OP.addSon(LV);
+                    OP.addSon(RV);
+                    
+                    T.addSon(OP);
+                    
                     if(!compError){
                         if(lval != rval){
                             if(lval == 0){
@@ -835,8 +918,10 @@ public class MainWindow extends javax.swing.JFrame {
         return false;
     }
     
-    private boolean out(ArrayList<TOKEN> TL){
+    private boolean out(ArrayList<TOKEN> TL, TreeNode T){
         if(isOut(TL.get(0))){
+            TreeNode outNode = new TreeNode("out");
+            
             lastToken = TL.get(0);
             TL.remove(0);
             
@@ -845,7 +930,13 @@ public class MainWindow extends javax.swing.JFrame {
                 TL.remove(0);
                 
                 rval = -1;
-                return this.expresion_arit(TL);
+                
+                if(this.expresion_arit(TL)){
+                    outNode.addSon(this.convertToExpressionTree());
+                    T.addSon(outNode);
+                    
+                    return true;
+                }
             }
             
             sintaxError("Flux operator >>");
@@ -856,16 +947,24 @@ public class MainWindow extends javax.swing.JFrame {
         return false;
     }
     
-    private boolean in(ArrayList<TOKEN> TL){
+    private boolean in(ArrayList<TOKEN> TL, TreeNode T){
         if(isIn(TL.get(0))){
             lastToken = TL.get(0);
             TL.remove(0);
+            
+            TreeNode inNode = new TreeNode("in");
+            T.addSon(inNode);
             
             if(!TL.isEmpty() && isFlux(TL.get(0))){
                 lastToken = TL.get(0);
                 TL.remove(0);
                 
-                return this.identificador(TL);
+                if(identificador(TL)){
+                    
+                    inNode.addSon(new TreeNode(lastToken.getTokenName()));
+                    
+                    return true;
+                }
             }
             
             sintaxError("Flux operator >>");
@@ -906,10 +1005,14 @@ public class MainWindow extends javax.swing.JFrame {
         return false;
     }
     
-    private boolean bucle_while(ArrayList<TOKEN> TL){
+    private boolean bucle_while(ArrayList<TOKEN> TL, TreeNode T){
         if(!TL.isEmpty() && isWhile(TL.get(0))){
             lastToken = TL.get(0);
             TL.remove(0);
+            
+            TreeNode whileNode = new TreeNode("while");
+            T.addSon(whileNode);
+            
             whileCount++;
             if(!TL.isEmpty() && isOpenPar(TL.get(0))){
                 ArrayList<TOKEN> compList = new ArrayList<>();
@@ -937,8 +1040,11 @@ public class MainWindow extends javax.swing.JFrame {
                     compList.remove(0);
                     compList.remove(compList.size() - 1);
 
-                    if(comparacion(compList)){
-                        if(ordenes(TL)){
+                    if(comparacion(compList, whileNode)){
+                        TreeNode ws = new TreeNode("ws");
+                        whileNode.addSon(ws);
+                        
+                        if(ordenes(TL, ws)){
                             if(!TL.isEmpty() && isWhileEndBlockRW(TL.get(0))){
                                 lastToken = TL.get(0);
                                 TL.remove(0);
@@ -959,9 +1065,94 @@ public class MainWindow extends javax.swing.JFrame {
     }
     
     private TreeNode convertToExpressionTree(){
-        TreeNode RES;
         
-        return RES;
+        if(this.toEXP.size() == 1){
+            TreeNode xd = toEXP.get(0);
+            this.toEXP.clear();
+            return xd;
+        }
+        
+        ArrayList<TreeNode> COR = new ArrayList<>();
+        
+        // Correct list
+        for(int i = 0 ; i < this.toEXP.size() ; i++){
+            if("(".equals(this.toEXP.get(i).getItem())){
+                continue;
+            }
+            COR.add(this.toEXP.get(i));
+        }
+        
+        ArrayList<TreeNode> postFixResult = new ArrayList<>();
+        Stack<TreeNode> operatorStack = new Stack<>();
+        
+        for(int i = 0 ; i < COR.size() ; i++){
+            if(isID(COR.get(i).getItem()) || isFloat(COR.get(i).getItem()) || isEntero(COR.get(i).getItem())){
+                postFixResult.add(COR.get(i));
+            }else if(")".equals(COR.get(i).getItem())){
+                postFixResult.add(operatorStack.pop());
+            }else{
+                operatorStack.add(COR.get(i));
+            }
+        }
+        
+        while(!operatorStack.isEmpty()){
+            postFixResult.add(operatorStack.pop());
+        }
+        
+        // Create nodes to return
+        
+        ArrayList<TreeNode> COPY = new ArrayList<>();
+        TreeNode R = null, O, L = null;
+        
+        boolean rTurn = false;
+        
+        while(!postFixResult.isEmpty()){
+            
+            if(postFixResult.get(0).isLeaf() && isMathOperator(postFixResult.get(0).getItem())){ 
+                O = postFixResult.get(0);
+                postFixResult.remove(0);
+                
+                O.addSon(L);
+                O.addSon(R);
+                
+                COPY.add(O);
+                
+                if(postFixResult.isEmpty()){
+                    this.toEXP.clear();
+                    return O;
+                }
+                
+                COPY.addAll(postFixResult);
+                
+                postFixResult = (ArrayList<TreeNode>) COPY.clone();
+                COPY.clear();
+                
+                L = null;
+                R = null;
+            }else{
+                if(rTurn){
+                    if(R != null){
+                        COPY.add(R);
+                    }
+                    
+                    R = postFixResult.get(0);
+                    postFixResult.remove(0);
+                }else{
+                    if(L != null){
+                        COPY.add(L);
+                    }
+                    
+                    L = postFixResult.get(0);
+                    postFixResult.remove(0);
+                }
+                
+                rTurn = !rTurn;
+            }
+        }
+        
+        this.toEXP.clear();
+        
+        return postFixResult.get(0);
     }
     
     private boolean asignar(ArrayList<TOKEN> TL, TreeNode T){
@@ -986,11 +1177,12 @@ public class MainWindow extends javax.swing.JFrame {
                 
                 A.addSon(LV);
                 
-                A.addSon(this.convertToExpressionTree());
-                
-                T.addSon(A);
-                
                 if(expresion_arit(TL)){
+                    
+                    A.addSon(this.convertToExpressionTree());
+
+                    T.addSon(A);
+                    
                     if(!compError){
                         if(lval != rval){
                             if(lval == 0){
@@ -1028,8 +1220,6 @@ public class MainWindow extends javax.swing.JFrame {
                         opCount--;
                     }
                     
-                    this.toEXP.add(new TreeNode(lastToken.getTokenName()));
-                    
                     compList.add(TL.get(0));
                     TL.remove(0);
                 }
@@ -1043,6 +1233,7 @@ public class MainWindow extends javax.swing.JFrame {
                     compList.remove(compList.size() - 1);
 
                     if(expresion_arit(compList)){
+                        this.toEXP.add(new TreeNode(")"));
                         return exp_arit(TL);
                     }else{
                         return false;
@@ -1438,6 +1629,21 @@ public class MainWindow extends javax.swing.JFrame {
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
+    private void printTree(){
+        printInOrder(this.AnalisisTree);
+    }
+    
+    private void printInOrder(TreeNode t){
+        if(t.isLeaf()){
+            System.out.println(t.getItem());
+            return;
+        }
+        
+        for(int i = 0 ; i < t.getSonsSize() ; i++){
+            printInOrder(t.getSon(i));
+        }
+    }
+    
     private void AnalizeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_AnalizeActionPerformed
         // TODO add your handling code here:
         this.clearAllFields();
@@ -1450,7 +1656,7 @@ public class MainWindow extends javax.swing.JFrame {
         boolean sintaxAnalisysResult = this.programa(TL);
         
         if(sintaxAnalisysResult && !semError){
-            // 3AC
+            this.printTree();
         }
         
         if(sintaxAnalisysResult){

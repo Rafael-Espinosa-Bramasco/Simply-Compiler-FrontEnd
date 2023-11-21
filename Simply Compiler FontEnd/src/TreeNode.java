@@ -21,12 +21,20 @@ public class TreeNode {
         this.sons = new ArrayList<>();
     }
     
+    public boolean isLeaf(){
+        return this.sons.isEmpty();
+    }
+    
     public String getItem(){
         return this.item;
     }
     
     public void addSon(TreeNode n){
         this.sons.add(n);
+    }
+    
+    public void addSon(int i, TreeNode n){
+        this.sons.add(i, n);
     }
     
     public TreeNode getSon(TreeNode n){
