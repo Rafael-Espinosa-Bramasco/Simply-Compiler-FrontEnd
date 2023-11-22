@@ -1721,13 +1721,14 @@ public class MainWindow extends javax.swing.JFrame {
                 case ">=" -> {
                     return "<";
                 }
-                case "==" -> {
-                    return "!=";
+                case "=" -> {
+                    return "<>";
                 }
-                case "!=" -> {
-                    return "==";
+                case "<>" -> {
+                    return "=";
                 }
             }
+        return "";
     }
     
     private void orderWhile(TreeNode t){
