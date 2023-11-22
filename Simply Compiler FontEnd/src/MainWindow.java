@@ -1732,7 +1732,11 @@ public class MainWindow extends javax.swing.JFrame {
     
     private void orderWhile(TreeNode t){
         
-        this.quadruplo.add(new QUAD(opositeOperator(t.getSon(0).getItem()), t.getSon(0).getSon(0).getItem(),t.getSon(0).getSon(1).getItem(),"" ));
+        this.quadruplo.add(new QUAD(opositeOperator(t.getSon(0).getItem()), t.getSon(0).getSon(0).getItem(), t.getSon(0).getSon(1).getItem(), "" ));
+        this.quadruplo.add(new QUAD("if", "(".concat(String.valueOf(this.quadruplo.size()-1)).concat(")"), "", ""));
+        int ifPos = this.quadruplo.size()-1;
+        this.processOrders(t.getSon(1));
+        this.quadruplo.get();
         
     }
     
