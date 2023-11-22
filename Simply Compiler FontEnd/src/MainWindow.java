@@ -58,6 +58,8 @@ public class MainWindow extends javax.swing.JFrame {
     
     ArrayList<QUAD> quadruplo;
     
+    int wCounter = 0;
+    
     // Functions
     private void fillTokensTable(){
         clearTokensTable();
@@ -1732,12 +1734,17 @@ public class MainWindow extends javax.swing.JFrame {
     }
     
     private void orderWhile(TreeNode t){
+        wCounter = wCounter + 1;
+        this.quadruplo.add(new QUAD(opositeOperator(t.getSon(0).getItem()), t.getSon(0).getSon(0).getItem(), t.getSon(0).getSon(1).getItem(), "LW".concat(String.valueOf(wCounter)) ));
+        this.quadruplo.add(new QUAD("if", "(".concat(String.valueOf(this.quadruplo.size()-1)).concat(")"), "LaW".concat(String.valueOf(wCounter)), ""));
+    
+        int aux = wCounter;
+        wCounter = wCounter + 1;
         
-        this.quadruplo.add(new QUAD(opositeOperator(t.getSon(0).getItem()), t.getSon(0).getSon(0).getItem(), t.getSon(0).getSon(1).getItem(), "" ));
-        this.quadruplo.add(new QUAD("if", "(".concat(String.valueOf(this.quadruplo.size()-1)).concat(")"), "", ""));
-        int ifPos = this.quadruplo.size()-1;
         this.processOrders(t.getSon(1));
-        this.quadruplo.get();
+        
+        this.quadruplo.add(new QUAD("GOTO", "LW".concat(String.valueOf(aux)), "", ""));
+        this.quadruplo.add(new QUAD("LABEL", "LaW".concat(String.valueOf(aux)), "", ""));
         
     }
     
