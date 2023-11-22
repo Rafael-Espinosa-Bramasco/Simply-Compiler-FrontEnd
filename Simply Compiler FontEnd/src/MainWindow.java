@@ -1707,9 +1707,50 @@ public class MainWindow extends javax.swing.JFrame {
         }
     }
     
-    private void orderWhile(TreeNode t){}
+    private String opositeOperator(String operator){
+        switch(operator){
+                case "<" -> {
+                    return ">=";
+                }
+                case ">" -> {
+                    return "<=";
+                }
+                case "<=" -> {
+                    return ">";
+                }
+                case ">=" -> {
+                    return "<";
+                }
+                case "=" -> {
+                    return "<>";
+                }
+                case "<>" -> {
+                    return "=";
+                }
+            }
+        return "";
+    }
     
-    private void orderIn(TreeNode t){}
+    private void orderWhile(TreeNode t){
+        
+        this.quadruplo.add(new QUAD(opositeOperator(t.getSon(0).getItem()), t.getSon(0).getSon(0).getItem(),t.getSon(0).getSon(1).getItem(),"" ));
+        
+    }
+    
+    private int indexOfQUAD(String x){
+        for(int i = 0 ; i < this.quadruplo.size() ; i++){
+            if(x.equals(this.quadruplo.get(i).getV2())){
+                return i;
+            }
+        }
+        
+        return -1;
+    }
+    
+    private void orderIn(TreeNode t){
+        int index = indexOfQUAD(t.getSon(0).getItem());
+        this.quadruplo.add(new QUAD(t.getItem(),"","",""));
+    }
     
     private void orderOut(TreeNode t){
         if(t.getSon(0).isLeaf() && t.getSonsSize() == 1){
@@ -1750,7 +1791,17 @@ public class MainWindow extends javax.swing.JFrame {
         }
     }
     
-    private void orderIf(TreeNode t){}
+    private void orderIf(TreeNode t){
+        this.quadruplo.add(new QUAD(opositeOperator(t.getSon(0).getItem()),t.getSon(0).getSon(0).getItem(),t.getSon(0).getSon(1).getItem(),""));
+        this.quadruplo.add(new QUAD("if","(".concat(String.valueOf(this.quadruplo.size() - 1)).concat(")"),"",""));
+        
+        if(t.getSonsSize() == 2){
+            this.processOrders(t.getSon(1));
+        }else{
+            this.processOrders(t.getSon(1));
+            this.processOrders(t.getSon(2));
+        }
+    }
     
     private void orderAsign(TreeNode t){
         if(t.getSon(0).isLeaf() && t.getSonsSize() == 1){

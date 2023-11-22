@@ -21,4 +21,36 @@ public class QUAD {
         v3 = z;
         v4 = x1;
     }
+    
+    public void setV1(String x){
+        v1 = x;
+    }
+    
+    public void setV2(String x){
+        v2 = x;
+    }
+    
+    public void setV3(String x){
+        v3 = x;
+    }
+    
+    public void setV4(String x){
+        v4 = x;
+    }
+    
+    public String getV1(){
+        return v1;
+    }
+    
+    public String getV2(){
+        return v2;
+    }
+    
+    public String getV3(){
+        return v3;
+    }
+    
+    public String getV4(){
+        return v4;
+    }
 }
