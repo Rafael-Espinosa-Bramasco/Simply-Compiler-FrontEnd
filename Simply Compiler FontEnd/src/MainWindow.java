@@ -1707,7 +1707,34 @@ public class MainWindow extends javax.swing.JFrame {
         }
     }
     
-    private void orderWhile(TreeNode t){}
+    private String opositeOperator(String operator){
+        switch(operator){
+                case "<" -> {
+                    return ">=";
+                }
+                case ">" -> {
+                    return "<=";
+                }
+                case "<=" -> {
+                    return ">";
+                }
+                case ">=" -> {
+                    return "<";
+                }
+                case "==" -> {
+                    return "!=";
+                }
+                case "!=" -> {
+                    return "==";
+                }
+            }
+    }
+    
+    private void orderWhile(TreeNode t){
+        
+        this.quadruplo.add(new QUAD(opositeOperator(t.getSon(0).getItem()), t.getSon(0).getSon(0).getItem(),t.getSon(0).getSon(1).getItem(),"" ));
+        
+    }
     
     private void orderIn(TreeNode t){}
     
