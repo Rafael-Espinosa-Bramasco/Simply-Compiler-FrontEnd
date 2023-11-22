@@ -1755,7 +1755,7 @@ public class MainWindow extends javax.swing.JFrame {
     private void orderOut(TreeNode t){
         if(t.getSon(0).isLeaf() && t.getSonsSize() == 1){
             if(isID(t.getSon(0).getItem())){
-               int index = indexofQUAD(t.getSon(0).getItem()); 
+               int index = indexOfQUAD(t.getSon(0).getItem()); 
                this.quadruplo.add(new QUAD(t.getItem(),"("+String.valueOf(index)+")","",""));
             }
             this.quadruplo.add(new QUAD(t.getItem(),t.getSon(0).getItem(),"",""));
