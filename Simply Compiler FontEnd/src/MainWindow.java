@@ -58,6 +58,8 @@ public class MainWindow extends javax.swing.JFrame {
     
     ArrayList<QUAD> quadruplo;
     
+    int ifLabelCount;
+    
     // Functions
     private void fillTokensTable(){
         clearTokensTable();
@@ -1749,19 +1751,42 @@ public class MainWindow extends javax.swing.JFrame {
     
     private void orderIn(TreeNode t){
         int index = indexOfQUAD(t.getSon(0).getItem());
-        this.quadruplo.add(new QUAD(t.getItem(),"","",""));
+        this.quadruplo.add(new QUAD(t.getItem(),"(".concat(String.valueOf(index).concat(")")),"",""));
     }
     
     private void orderOut(TreeNode t){}
     
     private void orderIf(TreeNode t){
-        this.quadruplo.add(new QUAD(opositeOperator(t.getSon(0).getItem()),t.getSon(0).getSon(0).getItem(),t.getSon(0).getSon(1).getItem(),""));
+        String op1 = t.getSon(0).getSon(0).getItem();
+        String op2 = t.getSon(0).getSon(1).getItem();
+        
+        if(isID(op1)){
+            op1 = "(".concat(String.valueOf(t.getSon(0).getSon(0).getItem()).concat(")"));
+        }
+        
+        if(isID(op2)){
+            op2 = "(".concat(String.valueOf(t.getSon(0).getSon(0).getItem()).concat(")"));
+        }
+        
+        this.quadruplo.add(new QUAD(opositeOperator(t.getSon(0).getItem()),op1,op2,""));
         this.quadruplo.add(new QUAD("if","(".concat(String.valueOf(this.quadruplo.size() - 1)).concat(")"),"",""));
+        int ifC = this.ifLabelCount;
+        this.ifLabelCount++;
+        int index = this.quadruplo.size() - 1;
         
         if(t.getSonsSize() == 2){
             this.processOrders(t.getSon(1));
+            
+            // Complete if xd
+            this.quadruplo.add(new QUAD("LABEL","LEI".concat(String.valueOf(ifC)),"",""));
+            this.quadruplo.get(index).setV3("LEI".concat(String.valueOf(ifC)));
         }else{
             this.processOrders(t.getSon(1));
+            
+            // Complete if xd
+            this.quadruplo.add(new QUAD("LABEL","LEI".concat(String.valueOf(ifC)),"",""));
+            this.quadruplo.get(index).setV3("LEI".concat(String.valueOf(ifC)));
+            
             this.processOrders(t.getSon(2));
         }
     }
