@@ -27,9 +27,12 @@ public class MainWindow extends javax.swing.JFrame {
         
         this.TokensTableModel = (DefaultTableModel) this.TokensTable.getModel();
         this.lastToken = null;
+        this.quadGUI = null;
     }
 
     // Variables
+    QUADRUPLO quadGUI;
+    
     ArrayList<TOKEN> TL;
     String AT;
     int Line;
@@ -1373,6 +1376,11 @@ public class MainWindow extends javax.swing.JFrame {
         this.error = false;
         this.semError = false;
         this.clearTokensTable();
+        this.AnalisisTree = null;
+        this.ifLabelCount = 0;
+        this.wCounter = 0;
+        this.ifCount = 0;
+        this.whileCount = 0;
         this.SintaxMessages.setText("");
         this.SemanticMessages.setText("");
     }
@@ -1735,8 +1743,18 @@ public class MainWindow extends javax.swing.JFrame {
     }
     
     private void orderWhile(TreeNode t){
-        wCounter = wCounter + 1;
-        this.quadruplo.add(new QUAD(opositeOperator(t.getSon(0).getItem()), t.getSon(0).getSon(0).getItem(), t.getSon(0).getSon(1).getItem(), "LW".concat(String.valueOf(wCounter)) ));
+        String op1 = t.getSon(0).getSon(0).getItem();
+        String op2 = t.getSon(0).getSon(1).getItem();
+        
+        if(isID(op1)){
+            op1 = "(".concat(String.valueOf(indexOfQUAD(op1)).concat(")"));
+        }
+        
+        if(isID(op2)){
+            op2 = "(".concat(String.valueOf(indexOfQUAD(op2)).concat(")"));
+        }
+        
+        this.quadruplo.add(new QUAD(opositeOperator(t.getSon(0).getItem()), op1, op2, "LW".concat(String.valueOf(wCounter)) ));
         this.quadruplo.add(new QUAD("if", "(".concat(String.valueOf(this.quadruplo.size()-1)).concat(")"), "LaW".concat(String.valueOf(wCounter)), ""));
     
         int aux = wCounter;
@@ -1770,11 +1788,10 @@ public class MainWindow extends javax.swing.JFrame {
                int index = indexOfQUAD(t.getSon(0).getItem()); 
                this.quadruplo.add(new QUAD(t.getItem(),"("+String.valueOf(index)+")","",""));
             }
-            this.quadruplo.add(new QUAD(t.getItem(),t.getSon(0).getItem(),"",""));
         }
         else{
-            recursive(t);
-            this.quadruplo.add(new QUAD(t.getItem(),t.getSon(0).getItem(),"",""));
+            recursive(t.getSon(0));
+            this.quadruplo.add(new QUAD(t.getItem(),String.valueOf(t.getSon(0).getItem()),"",""));
         }
     }
 
@@ -1783,20 +1800,43 @@ public class MainWindow extends javax.swing.JFrame {
         if(t.getSon(0).isLeaf() && !t.getSon(1).isLeaf()){
             recursive(t.getSon(1));
             
-            this.quadruplo.add(new QUAD(t.getItem(),t.getSon(0).getItem(),t.getSon(1).getItem(),""));
+            String x = t.getSon(0).getItem();
+            
+            if(isID(x)){
+                x = "(".concat(String.valueOf(indexOfQUAD(x)).concat(")"));
+            }
+                    
+            this.quadruplo.add(new QUAD(t.getItem(),x,t.getSon(1).getItem(),""));
             t.clearSons();
-            t.setItem(String.valueOf(this.quadruplo.size()-1));
+            t.setItem("("+String.valueOf(this.quadruplo.size()-1)+")");
         }
         else
         if(t.getSon(1).isLeaf() && !t.getSon(0).isLeaf()){
             recursive(t.getSon(0));
             
-            this.quadruplo.add(new QUAD(t.getItem(),t.getSon(0).getItem(),t.getSon(1).getItem(),""));
+            String x = t.getSon(1).getItem();
+            
+            if(isID(x)){
+                x = "(".concat(String.valueOf(indexOfQUAD(x)).concat(")"));
+            }
+            
+            this.quadruplo.add(new QUAD(t.getItem(),t.getSon(0).getItem(),x,""));
             t.clearSons();
-            t.setItem(String.valueOf(this.quadruplo.size()-1));
+            t.setItem("("+String.valueOf(this.quadruplo.size()-1)+")");
         }
         else{
-            this.quadruplo.add(new QUAD(t.getItem(),t.getSon(0).getItem(),t.getSon(1).getItem(),""));
+            String l = t.getSon(0).getItem();
+            String r = t.getSon(1).getItem();
+            
+            if(isID(l)){
+                l = "(".concat(String.valueOf(indexOfQUAD(l)).concat(")"));
+            }
+            
+            if(isID(r)){
+                r = "(".concat(String.valueOf(indexOfQUAD(r)).concat(")"));
+            }
+            
+            this.quadruplo.add(new QUAD(t.getItem(),l,r,""));
             t.clearSons();
             t.setItem("("+String.valueOf(this.quadruplo.size()-1)+")");
             
@@ -1808,11 +1848,11 @@ public class MainWindow extends javax.swing.JFrame {
         String op2 = t.getSon(0).getSon(1).getItem();
         
         if(isID(op1)){
-            op1 = "(".concat(String.valueOf(t.getSon(0).getSon(0).getItem()).concat(")"));
+            op1 = "(".concat(String.valueOf(indexOfQUAD(op1)).concat(")"));
         }
         
         if(isID(op2)){
-            op2 = "(".concat(String.valueOf(t.getSon(0).getSon(0).getItem()).concat(")"));
+            op2 = "(".concat(String.valueOf(indexOfQUAD(op2)).concat(")"));
         }
         
         this.quadruplo.add(new QUAD(opositeOperator(t.getSon(0).getItem()),op1,op2,""));
@@ -1839,17 +1879,40 @@ public class MainWindow extends javax.swing.JFrame {
     }
     
     private void orderAsign(TreeNode t){
-        if(t.getSon(0).isLeaf() && t.getSonsSize() == 1){
-            this.quadruplo.add(new QUAD(t.getItem(),t.getSon(0).getItem(),"",""));
+        if(t.getSon(1).isLeaf()){
+            String LVAL = t.getSon(0).getItem();
+            String RVAL = t.getSon(1).getItem();
+            
+            if(isID(LVAL)){
+                LVAL = "(".concat(String.valueOf(indexOfQUAD(LVAL))).concat(")");
+            }
+            
+            if(isID(RVAL)){
+                RVAL = "(".concat(String.valueOf(indexOfQUAD(RVAL))).concat(")");
+            }
+            
+            this.quadruplo.add(new QUAD(t.getItem(),LVAL,RVAL,""));
         }
         else{
-            recursive(t);
-            this.quadruplo.add(new QUAD(t.getItem(),t.getSon(0).getItem(),"",""));
+            recursive(t.getSon(1));
+            
+            String LVAL = t.getSon(0).getItem();
+            
+            if(isID(LVAL)){
+                LVAL = "(".concat(String.valueOf(indexOfQUAD(LVAL))).concat(")");
+            }
+            
+            this.quadruplo.add(new QUAD(t.getItem(),LVAL,t.getSon(1).getItem(),""));
         }
     }
     
     private void AnalizeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_AnalizeActionPerformed
         // TODO add your handling code here:
+        if(this.quadGUI != null){
+            this.quadGUI.dispose();
+            this.quadGUI = null;
+        }
+        
         this.clearAllFields();
         boolean lexicalAnalisys = this.LexicalAnalisys(this.SourceCode.getText());
         
@@ -1864,6 +1927,14 @@ public class MainWindow extends javax.swing.JFrame {
             
             this.processDeclarations(this.AnalisisTree.getSon(0));
             this.processOrders(this.AnalisisTree.getSon(1));
+            
+            this.quadGUI = new QUADRUPLO();
+            
+            for(int i = 0 ; i < this.quadruplo.size() ; i++){
+                this.quadGUI.addToTable(this.quadruplo.get(i), i);
+            }
+            
+            this.quadGUI.setVisible(true);
         }
         
         if(sintaxAnalisysResult){
@@ -1903,7 +1974,18 @@ public class MainWindow extends javax.swing.JFrame {
                 boolean sintaxAnalisysResult = this.programa(TL);
                 
                 if(sintaxAnalisysResult && !semError){
-                    // 3AC
+                    this.quadruplo = new ArrayList<>();
+
+                    this.processDeclarations(this.AnalisisTree.getSon(0));
+                    this.processOrders(this.AnalisisTree.getSon(1));
+
+                    this.quadGUI = new QUADRUPLO();
+
+                    for(int i = 0 ; i < this.quadruplo.size() ; i++){
+                        this.quadGUI.addToTable(this.quadruplo.get(i), i);
+                    }
+
+                    this.quadGUI.setVisible(true);
                 }
                 
                 if(sintaxAnalisysResult){
