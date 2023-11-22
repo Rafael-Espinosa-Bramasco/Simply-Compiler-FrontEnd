@@ -37,4 +37,20 @@ public class QUAD {
     public void setV4(String x){
         v4 = x;
     }
+    
+    public String getV1(){
+        return v1;
+    }
+    
+    public String getV2(){
+        return v2;
+    }
+    
+    public String getV3(){
+        return v3;
+    }
+    
+    public String getV4(){
+        return v4;
+    }
 }

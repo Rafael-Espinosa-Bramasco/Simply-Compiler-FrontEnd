@@ -1737,8 +1737,19 @@ public class MainWindow extends javax.swing.JFrame {
         
     }
     
+    private int indexOfQUAD(String x){
+        for(int i = 0 ; i < this.quadruplo.size() ; i++){
+            if(x.equals(this.quadruplo.get(i).getV2())){
+                return i;
+            }
+        }
+        
+        return -1;
+    }
+    
     private void orderIn(TreeNode t){
-        this.quadruplo.add(new QUAD(t.getItem(),t.getSon(0).getItem(),"",""));
+        int index = indexOfQUAD(t.getSon(0).getItem());
+        this.quadruplo.add(new QUAD(t.getItem(),"","",""));
     }
     
     private void orderOut(TreeNode t){}
