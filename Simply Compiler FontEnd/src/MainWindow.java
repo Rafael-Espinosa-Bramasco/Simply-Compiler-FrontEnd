@@ -1709,11 +1709,15 @@ public class MainWindow extends javax.swing.JFrame {
     
     private void orderWhile(TreeNode t){}
     
-    private void orderIn(TreeNode t){}
+    private void orderIn(TreeNode t){
+        this.quadruplo.add(new QUAD(t.getItem(),t.getSon(0).getItem(),"",""));
+    }
     
     private void orderOut(TreeNode t){}
     
-    private void orderIf(TreeNode t){}
+    private void orderIf(TreeNode t){
+        this.quadruplo.add(new QUAD(t.getSon(0).getItem(),t.getSon(0).getSon(0).getItem(),t.getSon(0).getSon(1).getItem(),""));
+    }
     
     private void orderAsign(TreeNode t){}
     
