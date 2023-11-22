@@ -52,4 +52,12 @@ public class TreeNode {
     public int getSonsSize(){
         return this.sons.size();
     }
+    
+    public void clearSons(){
+        this.sons.clear();
+    }
+    
+    public void setItem(String item){
+        this.item = item; 
+    }
 }

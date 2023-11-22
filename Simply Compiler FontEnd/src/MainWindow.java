@@ -1754,7 +1754,44 @@ public class MainWindow extends javax.swing.JFrame {
         this.quadruplo.add(new QUAD(t.getItem(),"(".concat(String.valueOf(index).concat(")")),"",""));
     }
     
-    private void orderOut(TreeNode t){}
+    private void orderOut(TreeNode t){
+        if(t.getSon(0).isLeaf() && t.getSonsSize() == 1){
+            if(isID(t.getSon(0).getItem())){
+               int index = indexOfQUAD(t.getSon(0).getItem()); 
+               this.quadruplo.add(new QUAD(t.getItem(),"("+String.valueOf(index)+")","",""));
+            }
+            this.quadruplo.add(new QUAD(t.getItem(),t.getSon(0).getItem(),"",""));
+        }
+        else{
+            recursive(t);
+            this.quadruplo.add(new QUAD(t.getItem(),t.getSon(0).getItem(),"",""));
+        }
+    }
+
+    private void recursive(TreeNode t){
+        
+        if(t.getSon(0).isLeaf() && !t.getSon(1).isLeaf()){
+            recursive(t.getSon(1));
+            
+            this.quadruplo.add(new QUAD(t.getItem(),t.getSon(0).getItem(),t.getSon(1).getItem(),""));
+            t.clearSons();
+            t.setItem(String.valueOf(this.quadruplo.size()-1));
+        }
+        else
+        if(t.getSon(1).isLeaf() && !t.getSon(0).isLeaf()){
+            recursive(t.getSon(0));
+            
+            this.quadruplo.add(new QUAD(t.getItem(),t.getSon(0).getItem(),t.getSon(1).getItem(),""));
+            t.clearSons();
+            t.setItem(String.valueOf(this.quadruplo.size()-1));
+        }
+        else{
+            this.quadruplo.add(new QUAD(t.getItem(),t.getSon(0).getItem(),t.getSon(1).getItem(),""));
+            t.clearSons();
+            t.setItem("("+String.valueOf(this.quadruplo.size()-1)+")");
+            
+        }
+    }
     
     private void orderIf(TreeNode t){
         String op1 = t.getSon(0).getSon(0).getItem();
@@ -1791,7 +1828,15 @@ public class MainWindow extends javax.swing.JFrame {
         }
     }
     
-    private void orderAsign(TreeNode t){}
+    private void orderAsign(TreeNode t){
+        if(t.getSon(0).isLeaf() && t.getSonsSize() == 1){
+            this.quadruplo.add(new QUAD(t.getItem(),t.getSon(0).getItem(),"",""));
+        }
+        else{
+            recursive(t);
+            this.quadruplo.add(new QUAD(t.getItem(),t.getSon(0).getItem(),"",""));
+        }
+    }
     
     private void AnalizeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_AnalizeActionPerformed
         // TODO add your handling code here:
@@ -1827,7 +1872,6 @@ public class MainWindow extends javax.swing.JFrame {
     private void AddFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_AddFileActionPerformed
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileFilter(new FileNameExtensionFilter("Archivos de texto", "txt"));
-
         int seleccion = fileChooser.showOpenDialog(null);
 
         if (seleccion == JFileChooser.APPROVE_OPTION) {
@@ -1837,11 +1881,9 @@ public class MainWindow extends javax.swing.JFrame {
             {
                 char[] chars = new char[(int)file.length()];
                 fr.read(chars);
- 
                 String fileContent = new String(chars);
-                //fileContent = fileContent.replaceAll("[\\p{Z}\\p{C}]+", "");
-                //fileContent = fileContent.replaceAll(" ", "");
                 fileContent = fileContent.replace("\r", "");
+                
                 this.SourceCode.setText(fileContent);
                 this.clearAllFields();
                 boolean lexicalAnalisys = this.LexicalAnalisys(fileContent);
