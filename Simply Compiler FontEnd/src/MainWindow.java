@@ -1744,7 +1744,15 @@ public class MainWindow extends javax.swing.JFrame {
     private void orderOut(TreeNode t){}
     
     private void orderIf(TreeNode t){
-        this.quadruplo.add(new QUAD(t.getSon(0).getItem(),t.getSon(0).getSon(0).getItem(),t.getSon(0).getSon(1).getItem(),""));
+        this.quadruplo.add(new QUAD(opositeOperator(t.getSon(0).getItem()),t.getSon(0).getSon(0).getItem(),t.getSon(0).getSon(1).getItem(),""));
+        this.quadruplo.add(new QUAD("if","(".concat(String.valueOf(this.quadruplo.size() - 1)).concat(")"),"",""));
+        
+        if(t.getSonsSize() == 2){
+            this.processOrders(t.getSon(1));
+        }else{
+            this.processOrders(t.getSon(1));
+            this.processOrders(t.getSon(2));
+        }
     }
     
     private void orderAsign(TreeNode t){}
