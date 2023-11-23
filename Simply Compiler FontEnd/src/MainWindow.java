@@ -28,10 +28,12 @@ public class MainWindow extends javax.swing.JFrame {
         this.TokensTableModel = (DefaultTableModel) this.TokensTable.getModel();
         this.lastToken = null;
         this.quadGUI = null;
+        this.codeGUI = null;
     }
 
     // Variables
     QUADRUPLO quadGUI;
+    ASMCODE codeGUI;
     
     ArrayList<TOKEN> TL;
     String AT;
@@ -1906,11 +1908,247 @@ public class MainWindow extends javax.swing.JFrame {
         }
     }
     
+    private boolean isVariableAddress(String x){
+        
+        if(x.startsWith("(") && x.endsWith(")")){
+            String num = "";
+
+            for(int i = 1 ; i < x.length() - 1 ; i++){
+                num = num + x.charAt(i);
+            }
+
+            int dir = Integer.parseInt(num);
+            
+            return this.quadruplo.get(dir).getV1().equals("entero") || this.quadruplo.get(dir).getV1().equals("real");
+        }
+        
+        return false;
+    }
+    
+    private boolean isInstructionAddress(String x){
+        
+        if(x.startsWith("(") && x.endsWith(")")){
+            String num = "";
+
+            for(int i = 1 ; i < x.length() - 1 ; i++){
+                num = num + x.charAt(i);
+            }
+
+            int dir = Integer.parseInt(num);
+            
+            return !this.quadruplo.get(dir).getV1().equals("entero") || !this.quadruplo.get(dir).getV1().equals("real");
+        }
+        
+        return false;
+    }
+    
+    private String getSymbol(String x){
+        if(x.startsWith("(") && x.endsWith(")")){
+            String num = "";
+
+            for(int i = 1 ; i < x.length() - 1 ; i++){
+                num = num + x.charAt(i);
+            }
+
+            int dir = Integer.parseInt(num);
+            
+            return this.quadruplo.get(dir).getV2();
+        }
+        
+        return "";
+    }
+    
+    private String getASMJump(String x){
+        switch(x){
+            case "<" -> {
+                return "JL";
+            }
+            case "<=" -> {
+                return "JLE";
+            }
+            case ">" -> {
+                return "JG";
+            }
+            case ">=" -> {
+                return "JGE";
+            }
+            case "=" -> {
+                return "JE";
+            }
+            case "<>" -> {
+                return "JNE";
+            }
+        }
+        return "";
+    }
+    
+    private void generateASMCode(){
+        QUAD aux;
+        String auxS, auxS2, auxS3;
+        
+        boolean inOperation = false;
+        
+        this.codeGUI = new ASMCODE();
+        
+        for(int i = 0 ; i < this.quadruplo.size() ; i++){
+            aux = this.quadruplo.get(i);
+            
+            if(!(aux.getV4().compareTo("") == 0) && !aux.getV1().equals("LABEL")){
+                this.codeGUI.addLine("");
+                this.codeGUI.addLabel(aux.getV4());
+            }
+            
+            switch(aux.getV1()){
+                case "LABEL" -> {
+                    this.codeGUI.addLine("");
+                    this.codeGUI.addLabel(aux.getV2());
+                }
+                case "GOTO" -> {
+                    this.codeGUI.addLine("");
+                    this.codeGUI.addLine("GOTO "+aux.getV2());
+                }
+                case "entero" -> {
+                    this.codeGUI.addLine(aux.getV2().concat(" DW 0"));
+                }
+                case "real" -> {
+                    this.codeGUI.addLine(aux.getV2().concat(" DQ 0.0"));
+                }
+                case "in" -> {
+                    auxS = this.getSymbol(aux.getV2());
+                
+                    this.codeGUI.addLine("");
+                    this.codeGUI.addLine("MOV $I, 21h");
+                    this.codeGUI.addLine("LEA $D, ".concat(auxS));
+                    this.codeGUI.addLine("INT");
+                }
+                case "<", ">", "<=", ">=", "=", "<>" -> {
+                    auxS = aux.getV2();
+                    auxS2 = aux.getV3();
+                    auxS3 = getASMJump(aux.getV1());
+                    
+                    if(isVariableAddress(auxS)){
+                        auxS = this.getSymbol(auxS);
+                    }
+                    
+                    if(isVariableAddress(auxS2)){
+                        auxS2 = this.getSymbol(auxS2);
+                    }
+                    
+                    this.codeGUI.addLine("");
+                    this.codeGUI.addLine("CMP "+auxS+", "+auxS2);
+                    this.codeGUI.addLine(auxS3+" "+this.quadruplo.get(i+1).getV3());
+                }
+                case ":=" -> {
+                    auxS = aux.getV2();
+                    auxS2 = aux.getV3();
+                    
+                    if(isVariableAddress(auxS)){
+                        auxS = this.getSymbol(auxS);
+                    }
+                    
+                    if(isVariableAddress(auxS2)){
+                        auxS2 = this.getSymbol(auxS2);
+                    }
+                    
+                    if(inOperation){
+                        this.codeGUI.addLine("");
+                        this.codeGUI.addLine("MOV "+auxS+", "+"$A");
+                        inOperation = false;
+                    }else{
+                        this.codeGUI.addLine("");
+                        this.codeGUI.addLine("MOV "+auxS+", "+auxS2);
+                    }
+                }
+                case "out" -> {
+                    auxS = aux.getV2();
+                    
+                    if(isVariableAddress(auxS)){
+                        auxS = this.getSymbol(auxS);
+                    }
+                    
+                    if(inOperation){
+                        this.codeGUI.addLine("");
+                        this.codeGUI.addLine("MOV $I, 22h");
+                        this.codeGUI.addLine("LEA $D, $A");
+                        this.codeGUI.addLine("INT");
+                        inOperation = false;
+                    }else{
+                        this.codeGUI.addLine("");
+                        this.codeGUI.addLine("MOV $I, 22h");
+                        this.codeGUI.addLine("LEA $D, "+auxS);
+                        this.codeGUI.addLine("INT");
+                    }
+                }
+                case "+", "-", "*", "/" -> {
+                    auxS = aux.getV2();
+                    auxS2 = aux.getV3();
+                    auxS3 = aux.getV1();
+                    
+                    switch(auxS3){
+                        case "+" -> {
+                            auxS3 = "ADD";
+                        }
+                        case "*" -> {
+                            auxS3 = "MUL";
+                        }
+                        case "/" -> {
+                            auxS3 = "DIV";
+                        }
+                        case "-" -> {
+                            auxS3 = "SUB";
+                        }
+                    }
+                    
+                    if(inOperation){
+                        if(isVariableAddress(auxS)){
+                            auxS = this.getSymbol(auxS);
+                        }
+
+                        if(isVariableAddress(auxS)){
+                            auxS = this.getSymbol(auxS);
+                        }
+                        
+                        if(!isInstructionAddress(aux.getV2())){
+                            this.codeGUI.addLine("");
+                            this.codeGUI.addLine("MOV $B, $A");
+                            this.codeGUI.addLine("MOV $A, "+auxS);
+                            this.codeGUI.addLine(auxS3+" $A, $B");
+                        }else{
+                            this.codeGUI.addLine("");
+                            this.codeGUI.addLine(auxS3+" $A, "+auxS2);
+                        }
+                    }else{
+                        if(isVariableAddress(auxS)){
+                            auxS = this.getSymbol(auxS);
+                        }
+
+                        if(isVariableAddress(auxS2)){
+                            auxS2 = this.getSymbol(auxS2);
+                        }
+                        
+                        this.codeGUI.addLine("");
+                        this.codeGUI.addLine("MOV $A, "+auxS);
+                        this.codeGUI.addLine(auxS3+" $A, "+auxS2);
+                        
+                        inOperation = true;
+                    }
+                }
+            }
+        }
+        
+        this.codeGUI.setVisible(true);
+    }
+    
     private void AnalizeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_AnalizeActionPerformed
         // TODO add your handling code here:
         if(this.quadGUI != null){
             this.quadGUI.dispose();
             this.quadGUI = null;
+        }
+        
+        if(this.codeGUI != null){
+            this.codeGUI.dispose();
+            this.codeGUI = null;
         }
         
         this.clearAllFields();
@@ -1935,6 +2173,8 @@ public class MainWindow extends javax.swing.JFrame {
             }
             
             this.quadGUI.setVisible(true);
+            
+            this.generateASMCode();
         }
         
         if(sintaxAnalisysResult){
