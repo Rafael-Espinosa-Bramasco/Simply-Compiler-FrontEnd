@@ -591,7 +591,7 @@ public class MainWindow extends javax.swing.JFrame {
             sintaxError("Init Section and Orders Section");
             return false;
         }
-        if(!isSemiColon(TL.get(0))){
+        if(TL.isEmpty() || !isSemiColon(TL.get(0))){
             sintaxError("SemiColon");
             return false;
         }
@@ -791,7 +791,6 @@ public class MainWindow extends javax.swing.JFrame {
                 sintaxError("Balanced parenthesis");
                 return false;
             }else{
-                lastToken = TL.get(0);
                 compList.remove(0);
                 compList.remove(compList.size() - 1);
                 
@@ -1385,6 +1384,7 @@ public class MainWindow extends javax.swing.JFrame {
         this.whileCount = 0;
         this.SintaxMessages.setText("");
         this.SemanticMessages.setText("");
+        this.codeField.setText("");
     }
     
     private boolean symbolExists(String s){
@@ -1533,6 +1533,7 @@ public class MainWindow extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        popupMenu1 = new java.awt.PopupMenu();
         jLabel1 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         SourceCode = new javax.swing.JTextArea();
@@ -1548,23 +1549,40 @@ public class MainWindow extends javax.swing.JFrame {
         jLabel4 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
         AddFile = new javax.swing.JButton();
+        jScrollPane5 = new javax.swing.JScrollPane();
+        codeField = new javax.swing.JTextArea();
+        jLabel6 = new javax.swing.JLabel();
+
+        popupMenu1.setLabel("popupMenu1");
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle("Compiler FontEnd");
+        setTitle("Compilador");
+        setAutoRequestFocus(false);
+        setBackground(new java.awt.Color(0, 0, 0));
+        setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+        setResizable(false);
 
+        jLabel1.setBackground(new java.awt.Color(0, 0, 0));
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
+        jLabel1.setForeground(new java.awt.Color(204, 51, 255));
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel1.setText("Simply Compiler FrontEnd");
+        jLabel1.setText("COMPILADOR");
 
+        SourceCode.setBackground(new java.awt.Color(255, 204, 255));
         SourceCode.setColumns(20);
+        SourceCode.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        SourceCode.setForeground(new java.awt.Color(0, 0, 0));
         SourceCode.setRows(5);
         jScrollPane1.setViewportView(SourceCode);
 
         jLabel2.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        jLabel2.setForeground(new java.awt.Color(153, 102, 255));
         jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel2.setText("Code");
+        jLabel2.setText("CODIGO");
 
+        Analize.setBackground(new java.awt.Color(204, 204, 204));
         Analize.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        Analize.setForeground(new java.awt.Color(0, 0, 0));
         Analize.setText("Analize");
         Analize.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -1572,111 +1590,151 @@ public class MainWindow extends javax.swing.JFrame {
             }
         });
 
+        TokensTable.setBackground(new java.awt.Color(255, 204, 153));
+        TokensTable.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        TokensTable.setForeground(new java.awt.Color(0, 0, 0));
         TokensTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
             },
             new String [] {
-                "Token ID", "Code Line", "Token Number", "Lexeme"
+                "IDENTIFICADOR", "LINEA DE COD", "NUM DE TK", "LEXEMA"
             }
         ));
         TokensTable.setShowGrid(true);
         jScrollPane2.setViewportView(TokensTable);
 
         SintaxMessages.setEditable(false);
+        SintaxMessages.setBackground(new java.awt.Color(204, 255, 204));
         SintaxMessages.setColumns(20);
+        SintaxMessages.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        SintaxMessages.setForeground(new java.awt.Color(0, 0, 0));
         SintaxMessages.setRows(5);
         jScrollPane3.setViewportView(SintaxMessages);
 
         SemanticMessages.setEditable(false);
+        SemanticMessages.setBackground(new java.awt.Color(255, 255, 204));
         SemanticMessages.setColumns(20);
+        SemanticMessages.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        SemanticMessages.setForeground(new java.awt.Color(0, 0, 0));
         SemanticMessages.setRows(5);
         jScrollPane4.setViewportView(SemanticMessages);
 
-        jLabel3.setFont(new java.awt.Font("Segoe UI", 2, 12)); // NOI18N
-        jLabel3.setText("Lexical Analisys");
+        jLabel3.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        jLabel3.setForeground(new java.awt.Color(204, 153, 0));
+        jLabel3.setText("ANALIZADOR LEXICO");
 
-        jLabel4.setFont(new java.awt.Font("Segoe UI", 2, 12)); // NOI18N
-        jLabel4.setText("Sintax Analisys");
+        jLabel4.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        jLabel4.setForeground(new java.awt.Color(0, 153, 102));
+        jLabel4.setText("ANALIZADOR SINTACTICO");
 
-        jLabel5.setFont(new java.awt.Font("Segoe UI", 2, 12)); // NOI18N
-        jLabel5.setText("Semantic Analisys");
+        jLabel5.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        jLabel5.setForeground(new java.awt.Color(153, 153, 0));
+        jLabel5.setText("ANALIZADOR SEMANTICO");
 
+        AddFile.setBackground(new java.awt.Color(204, 204, 204));
         AddFile.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        AddFile.setText("Add File");
+        AddFile.setForeground(new java.awt.Color(0, 0, 0));
+        AddFile.setText("Añadir Archivo");
         AddFile.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 AddFileActionPerformed(evt);
             }
         });
 
+        codeField.setEditable(false);
+        codeField.setBackground(new java.awt.Color(204, 255, 255));
+        codeField.setColumns(20);
+        codeField.setFont(new java.awt.Font("Roboto", 0, 14)); // NOI18N
+        codeField.setForeground(new java.awt.Color(0, 0, 0));
+        codeField.setRows(5);
+        jScrollPane5.setViewportView(codeField);
+
+        jLabel6.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        jLabel6.setForeground(new java.awt.Color(0, 102, 102));
+        jLabel6.setText("CODIGO ENSAMBLADOR");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 338, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 278, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE))
+                        .addGap(204, 204, 204)
+                        .addComponent(jLabel4))
                     .addGroup(layout.createSequentialGroup()
+                        .addGap(52, 52, 52)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(10, 10, 10)
-                                .addComponent(AddFile)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 278, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(18, 18, 18)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                        .addComponent(Analize, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(jLabel3))
-                                    .addComponent(jLabel4, javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addComponent(jLabel5, javax.swing.GroupLayout.Alignment.TRAILING))
-                                .addGap(18, 18, 18)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 352, Short.MAX_VALUE)
-                                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                                    .addComponent(jScrollPane4))))
-                        .addContainerGap())))
+                            .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 446, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 446, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 446, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(203, 203, 203)
+                        .addComponent(jLabel5)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 52, Short.MAX_VALUE)
+                .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 365, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addGroup(layout.createSequentialGroup()
+                .addGap(33, 33, 33)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 278, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(22, 22, 22)
+                        .addComponent(AddFile, javax.swing.GroupLayout.PREFERRED_SIZE, 238, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(246, 246, 246)
+                        .addComponent(jLabel3))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(162, 162, 162)
+                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 300, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(jLabel6)
+                        .addGap(98, 98, 98))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(Analize, javax.swing.GroupLayout.PREFERRED_SIZE, 236, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(60, 60, 60))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1)
-                    .addComponent(AddFile, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addComponent(jLabel2)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(27, 27, 27)
+                        .addComponent(Analize, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(AddFile, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel1))))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jLabel3)
+                        .addComponent(jLabel6))
+                    .addComponent(jLabel2))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 173, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel3)
-                                .addGap(70, 70, 70)
-                                .addComponent(Analize, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)))
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jScrollPane1)
                             .addGroup(layout.createSequentialGroup()
-                                .addGap(18, 18, 18)
-                                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 93, Short.MAX_VALUE)
-                                .addGap(18, 18, 18))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(49, 49, 49)
+                                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 187, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 24, Short.MAX_VALUE)
                                 .addComponent(jLabel4)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 208, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(12, 12, 12)
                                 .addComponent(jLabel5)
-                                .addGap(58, 58, 58)))))
-                .addContainerGap())
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 164, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addContainerGap())
+                    .addComponent(jScrollPane5)))
         );
+
+        getAccessibleContext().setAccessibleName("Compilador ");
 
         pack();
         setLocationRelativeTo(null);
@@ -1994,32 +2052,32 @@ public class MainWindow extends javax.swing.JFrame {
             aux = this.quadruplo.get(i);
             
             if(!(aux.getV4().compareTo("") == 0) && !aux.getV1().equals("LABEL")){
-                this.codeGUI.addLine("");
-                this.codeGUI.addLabel(aux.getV4());
+                this.addLine("");
+                this.addLabel(aux.getV4());
             }
             
             switch(aux.getV1()){
                 case "LABEL" -> {
-                    this.codeGUI.addLine("");
-                    this.codeGUI.addLabel(aux.getV2());
+                    this.addLine("");
+                    this.addLabel(aux.getV2());
                 }
                 case "GOTO" -> {
-                    this.codeGUI.addLine("");
-                    this.codeGUI.addLine("GOTO "+aux.getV2());
+                    this.addLine("");
+                    this.addLine("GOTO "+aux.getV2());
                 }
                 case "entero" -> {
-                    this.codeGUI.addLine(aux.getV2().concat(" DW 0"));
+                    this.addLine(aux.getV2().concat(" DW 0"));
                 }
                 case "real" -> {
-                    this.codeGUI.addLine(aux.getV2().concat(" DQ 0.0"));
+                    this.addLine(aux.getV2().concat(" DQ 0.0"));
                 }
                 case "in" -> {
                     auxS = this.getSymbol(aux.getV2());
                 
-                    this.codeGUI.addLine("");
-                    this.codeGUI.addLine("MOV $I, 21h");
-                    this.codeGUI.addLine("LEA $D, ".concat(auxS));
-                    this.codeGUI.addLine("INT");
+                    this.addLine("");
+                    this.addLine("MOV $I, 21h");
+                    this.addLine("LEA $D, ".concat(auxS));
+                    this.addLine("INT");
                 }
                 case "<", ">", "<=", ">=", "=", "<>" -> {
                     auxS = aux.getV2();
@@ -2034,9 +2092,9 @@ public class MainWindow extends javax.swing.JFrame {
                         auxS2 = this.getSymbol(auxS2);
                     }
                     
-                    this.codeGUI.addLine("");
-                    this.codeGUI.addLine("CMP "+auxS+", "+auxS2);
-                    this.codeGUI.addLine(auxS3+" "+this.quadruplo.get(i+1).getV3());
+                    this.addLine("");
+                    this.addLine("CMP "+auxS+", "+auxS2);
+                    this.addLine(auxS3+" "+this.quadruplo.get(i+1).getV3());
                 }
                 case ":=" -> {
                     auxS = aux.getV2();
@@ -2051,12 +2109,12 @@ public class MainWindow extends javax.swing.JFrame {
                     }
                     
                     if(inOperation){
-                        this.codeGUI.addLine("");
-                        this.codeGUI.addLine("MOV "+auxS+", "+"$A");
+                        this.addLine("");
+                        this.addLine("MOV "+auxS+", "+"$A");
                         inOperation = false;
                     }else{
-                        this.codeGUI.addLine("");
-                        this.codeGUI.addLine("MOV "+auxS+", "+auxS2);
+                        this.addLine("");
+                        this.addLine("MOV "+auxS+", "+auxS2);
                     }
                 }
                 case "out" -> {
@@ -2067,16 +2125,16 @@ public class MainWindow extends javax.swing.JFrame {
                     }
                     
                     if(inOperation){
-                        this.codeGUI.addLine("");
-                        this.codeGUI.addLine("MOV $I, 22h");
-                        this.codeGUI.addLine("LEA $D, $A");
-                        this.codeGUI.addLine("INT");
+                        this.addLine("");
+                        this.addLine("MOV $I, 22h");
+                        this.addLine("LEA $D, $A");
+                        this.addLine("INT");
                         inOperation = false;
                     }else{
-                        this.codeGUI.addLine("");
-                        this.codeGUI.addLine("MOV $I, 22h");
-                        this.codeGUI.addLine("LEA $D, "+auxS);
-                        this.codeGUI.addLine("INT");
+                        this.addLine("");
+                        this.addLine("MOV $I, 22h");
+                        this.addLine("LEA $D, "+auxS);
+                        this.addLine("INT");
                     }
                 }
                 case "+", "-", "*", "/" -> {
@@ -2109,13 +2167,13 @@ public class MainWindow extends javax.swing.JFrame {
                         }
                         
                         if(!isInstructionAddress(aux.getV2())){
-                            this.codeGUI.addLine("");
-                            this.codeGUI.addLine("MOV $B, $A");
-                            this.codeGUI.addLine("MOV $A, "+auxS);
-                            this.codeGUI.addLine(auxS3+" $A, $B");
+                            this.addLine("");
+                            this.addLine("MOV $B, $A");
+                            this.addLine("MOV $A, "+auxS);
+                            this.addLine(auxS3+" $A, $B");
                         }else{
-                            this.codeGUI.addLine("");
-                            this.codeGUI.addLine(auxS3+" $A, "+auxS2);
+                            this.addLine("");
+                            this.addLine(auxS3+" $A, "+auxS2);
                         }
                     }else{
                         if(isVariableAddress(auxS)){
@@ -2126,17 +2184,22 @@ public class MainWindow extends javax.swing.JFrame {
                             auxS2 = this.getSymbol(auxS2);
                         }
                         
-                        this.codeGUI.addLine("");
-                        this.codeGUI.addLine("MOV $A, "+auxS);
-                        this.codeGUI.addLine(auxS3+" $A, "+auxS2);
+                        this.addLine("");
+                        this.addLine("MOV $A, "+auxS);
+                        this.addLine(auxS3+" $A, "+auxS2);
                         
                         inOperation = true;
                     }
                 }
             }
         }
-        
-        this.codeGUI.setVisible(true);
+    }
+    public void addLine(String l){
+        this.codeField.setText(this.codeField.getText().concat(l).concat("\n"));
+    }
+    
+    public void addLabel(String x){
+        this.codeField.setText(this.codeField.getText().concat(x).concat(": "));
     }
     
     private void AnalizeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_AnalizeActionPerformed
@@ -2172,7 +2235,7 @@ public class MainWindow extends javax.swing.JFrame {
                 this.quadGUI.addToTable(this.quadruplo.get(i), i);
             }
             
-            this.quadGUI.setVisible(true);
+            //this.quadGUI.setVisible(true);
             
             this.generateASMCode();
         }
@@ -2289,14 +2352,18 @@ public class MainWindow extends javax.swing.JFrame {
     private javax.swing.JTextArea SintaxMessages;
     private javax.swing.JTextArea SourceCode;
     private javax.swing.JTable TokensTable;
+    private javax.swing.JTextArea codeField;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
+    private javax.swing.JScrollPane jScrollPane5;
+    private java.awt.PopupMenu popupMenu1;
     // End of variables declaration//GEN-END:variables
 }
